@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#130F2A">
+<title>عاين AD Studio | الإعلان البخلّيك تعاين مرتين</title>
+<meta name="description" content="استوديو إعلانات كرتونية بروح سودانية: أفكار، ريلز وحكايات قصيرة تخلّي الناس تتكلم عن علامتك.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Readex+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#130F2A;--ink2:#1D1740;--saffron:#FFC21A;--coral:#FF5B3A;--teal:#19C2B0;--lilac:#8B7CFF;--paper:#F5F3FF;--text:#EDEBFA;--muted:#A9A4C9;--line:rgba(255,255,255,.14);--r:18px;--display:'Lalezar','Readex Pro',Tahoma,sans-serif;--body:'Readex Pro',Tahoma,Arial,sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--ink);color:var(--text);font:400 1rem/1.8 var(--body);-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit}a{color:inherit;text-decoration:none}img,svg{display:block;max-width:100%}
+:focus-visible{outline:3px solid var(--saffron);outline-offset:3px;border-radius:8px}
+.wrap{width:min(1180px,92%);margin:auto}
+.ico{width:1.25em;height:1.25em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+/* nav */
+.topbar{position:sticky;top:0;z-index:30;background:rgba(19,15,42,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:74px}
+.brand{display:flex;align-items:center;gap:12px;font:400 1.55rem/1 var(--display)}
+.brand small{display:block;font:300 .68rem/1.3 var(--body);color:var(--muted);margin-top:4px}
+.logo{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--saffron);color:var(--ink);font:400 1.6rem/1 var(--display);border:2px solid #000;box-shadow:-3px 3px 0 var(--coral);transform:rotate(-4deg)}
+.links{display:flex;gap:6px;align-items:center}
+.links a{padding:8px 14px;border-radius:99px;font-size:.92rem;color:#d4d0ee;transition:background .2s,color .2s}
+.links a:hover{background:#ffffff12;color:#fff}
+.links a.active,.mobileLinks a.active{background:var(--saffron);color:var(--ink);font-weight:600}
+.menu{display:none}.mobileLinks{display:none}
+/* buttons */
+.btn{border:2px solid #000;cursor:pointer;border-radius:14px;padding:12px 22px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:var(--ink);box-shadow:-4px 4px 0 #000;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translate(2px,-2px);box-shadow:-6px 6px 0 #000}.btn:active{transform:translate(-2px,2px);box-shadow:-1px 1px 0 #000}
+.primary{background:var(--saffron)}.secondary{background:transparent;color:#fff;border-color:#ffffff55;box-shadow:none}
+.secondary:hover{box-shadow:none;transform:none;background:#ffffff14}
+.smallbtn{padding:8px 16px;font-size:.9rem;box-shadow:-3px 3px 0 #000}
+.btn .ico{transform:scaleX(-1)}
+/* views */
+main .page-view{display:none;min-height:calc(100vh - 74px)}
+main .page-view.active{display:block;animation:pageIn .35s ease both}
+@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.light{background:var(--paper);color:#1d1a33}
+.pageTop{padding:64px 0 8px}
+.pageTop h1{font:400 clamp(2.4rem,5vw,3.8rem)/1.15 var(--display);margin:0 0 10px}
+.pageTop p{margin:0;color:var(--muted);max-width:60ch}.light .pageTop p{color:#5d5a7e}
+.pageContent{padding:36px 0 90px}
+.tag{display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:99px;font-size:.82rem;font-weight:500;background:var(--teal);color:var(--ink);border:2px solid #000;margin-bottom:16px}
+/* hero */
+.hero{position:relative;overflow:hidden;background:radial-gradient(60% 70% at 85% 10%,#8b7cff33,transparent 70%),radial-gradient(50% 60% at 5% 90%,#ff5b3a2b,transparent 70%)}
+.heroGrid{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:70px 0 80px}
+.hero h1{font:400 clamp(3rem,7.4vw,6rem)/1.05 var(--display);margin:0 0 22px}
+.hero h1 em{display:inline-block;font-style:normal;background:var(--saffron);color:var(--ink);padding:0 .25em .08em;border:3px solid #000;border-radius:14px;box-shadow:-6px 6px 0 var(--coral);transform:rotate(-2deg);margin-top:.15em}
+.hero p.lead{color:#cbc7e8;font-size:1.12rem;max-width:52ch;margin:0 0 30px}
+.actions{display:flex;flex-wrap:wrap;gap:14px}
+.proof{display:flex;gap:10px 24px;flex-wrap:wrap;margin-top:36px;color:var(--muted);font-size:.9rem}
+.proof span{display:inline-flex;align-items:center;gap:8px}.proof .ico{color:var(--teal)}
+.heroArt{position:relative;display:grid;place-items:center;min-height:480px}
+.phone{width:min(300px,78%);aspect-ratio:9/17;border:3px solid #000;border-radius:38px;background:var(--lilac);box-shadow:-14px 14px 0 var(--saffron),-14px 14px 0 3px #000;transform:rotate(3deg);overflow:hidden;position:relative}
+.phone svg{width:100%;height:100%}
+.sticker{position:absolute;padding:10px 16px;border:2px solid #000;border-radius:14px;font-weight:600;font-size:.9rem;color:var(--ink);box-shadow:-4px 4px 0 #000;display:flex;align-items:center;gap:8px}
+.s1{top:46px;right:-4px;background:#fff;transform:rotate(4deg)}.s2{bottom:70px;left:-6px;background:var(--teal);transform:rotate(-5deg)}
+.float{animation:bob 5s ease-in-out infinite}.s2.float{animation-delay:-2.5s}
+@keyframes bob{50%{translate:0 -8px}}
+/* marquee */
+.marquee{background:var(--saffron);color:var(--ink);border-block:3px solid #000;overflow:hidden;transform:rotate(-1deg);margin:10px -2%}
+.track{display:flex;gap:44px;width:max-content;padding:14px 0;font:400 1.6rem/1 var(--display);animation:slide 34s linear infinite}
+.track span{display:inline-flex;align-items:center;gap:44px}.track span:after{content:"✺";color:var(--coral)}
+@keyframes slide{to{transform:translateX(50%)}}
+/* process */
+.section{padding:90px 0}
+.sectionHead{margin-bottom:40px;max-width:640px}
+.sectionHead h2{font:400 clamp(2rem,4vw,3rem)/1.2 var(--display);margin:0 0 8px}
+.sectionHead p{margin:0;color:var(--muted)}.light .sectionHead p{color:#5d5a7e}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;counter-reset:s}
+.step{position:relative;padding:26px 22px;border:2px solid var(--line);border-radius:var(--r);background:var(--ink2);counter-increment:s}
+.step:before{content:counter(s);display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:var(--c,var(--saffron));color:var(--ink);font:400 1.4rem/1 var(--display);border:2px solid #000;margin-bottom:16px}
+.step:nth-child(2){--c:var(--teal)}.step:nth-child(3){--c:var(--coral)}.step:nth-child(4){--c:var(--lilac)}
+.step h3{margin:0 0 6px;font:400 1.4rem/1.3 var(--display)}.step p{margin:0;color:var(--muted);font-size:.93rem}
+.cta{margin:0 auto 90px;padding:48px;border:3px solid #000;border-radius:28px;background:var(--coral);color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;box-shadow:-10px 10px 0 var(--saffron),-10px 10px 0 3px #000}
+.cta h2{font:400 clamp(1.9rem,4vw,3rem)/1.2 var(--display);margin:0}
+/* services */
+.serviceGrid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:20px}
+.service{padding:28px;border:3px solid #000;border-radius:24px;background:#fff;box-shadow:-6px 6px 0 #000;display:flex;flex-direction:column;transition:transform .2s}
+.service:hover{transform:translateY(-4px)}
+.service:nth-child(1){background:var(--saffron)}.service:nth-child(2){background:var(--teal)}.service:nth-child(3){background:#fff}
+.serviceIcon{display:grid;place-items:center;width:60px;height:60px;border-radius:18px;background:var(--ink);color:#fff;font-size:1.6rem;margin-bottom:22px}
+.service h3{margin:0 0 8px;font:400 1.7rem/1.2 var(--display)}.service p{margin:0 0 22px;color:#2b2650;flex:1}
+.textLink{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--ink);cursor:pointer;border-bottom:2px solid var(--ink);align-self:flex-start;padding-bottom:2px}
+/* ideas */
+.ideaLayout{display:grid;grid-template-columns:.85fr 1.15fr;gap:48px;align-items:start}
+.ideaIntro h2{font:400 clamp(2rem,4vw,3rem)/1.25 var(--display);margin:0 0 14px}.ideaIntro p{color:var(--muted);max-width:44ch}
+.ideaBox{background:#fff;color:#1d1a33;padding:30px;border:3px solid #000;border-radius:24px;box-shadow:-8px 8px 0 var(--lilac),-8px 8px 0 3px #000}
+.ideaBox h3{margin:0 0 18px;font:400 1.6rem/1.2 var(--display)}
+.field{display:block;margin-bottom:16px}.field span{display:block;font-weight:600;font-size:.9rem;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:13px 14px;border:2px solid #1d1a33;border-radius:12px;background:#fff;color:#1d1a33;outline:none;transition:box-shadow .15s}
+.field input:focus,.field select:focus,.field textarea:focus{box-shadow:-4px 4px 0 var(--saffron)}
+.field textarea{min-height:110px;resize:vertical}
+.result{margin-top:18px;padding:18px;border-radius:14px;background:#fff6d6;color:#1d1a33;border:2px dashed #1d1a33;display:none;white-space:pre-wrap;line-height:1.9}
+/* portfolio */
+.portfolioGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.portfolio{position:relative;min-height:340px;border:3px solid #000;border-radius:22px;padding:24px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;box-shadow:-6px 6px 0 #000;background:var(--c);color:var(--ink);transition:transform .2s}
+.portfolio:hover{transform:rotate(-1deg) translateY(-4px)}
+.portfolio:nth-child(1){--c:var(--saffron)}.portfolio:nth-child(2){--c:var(--teal)}.portfolio:nth-child(3){--c:var(--lilac)}
+.portfolio .big{position:absolute;top:22px;inset-inline-start:22px;width:110px;height:110px;color:var(--ink);stroke-width:1.4}
+.portfolio:before{content:"";position:absolute;width:260px;height:260px;border-radius:50%;border:26px solid #ffffff44;top:-90px;inset-inline-end:-90px}
+.portfolio h3{margin:0 0 4px;font:400 1.9rem/1.2 var(--display);position:relative}.portfolio p{margin:0;position:relative;font-size:.95rem}
+.note{margin-top:30px;color:#5d5a7e;font-size:.88rem}
+/* request */
+.requestPanel{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.requestPanel h2{font:400 clamp(2.2rem,4.5vw,3.4rem)/1.15 var(--display);margin:0 0 14px}
+.requestPanel>div>p{color:var(--muted);max-width:44ch}
+.requestPanel form{background:#fff;color:#1d1a33;padding:30px;border:3px solid #000;border-radius:24px;box-shadow:-8px 8px 0 var(--coral),-8px 8px 0 3px #000}
+.socials{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.socials a{border:2px solid #ffffff44;padding:8px 16px;border-radius:99px;font-size:.9rem;transition:background .2s}.socials a:hover{background:#ffffff14}
+.notice{font-size:.82rem;color:#5d5a7e;margin-top:14px}
+.orders{display:grid;gap:14px}
+.order{padding:18px 20px;border:2px solid #000;border-radius:16px;background:#fff;box-shadow:-4px 4px 0 #000}
+.order b{font-family:var(--display);font-weight:400;font-size:1.2rem}.order small{color:#5d5a7e}.order p{margin:6px 0 0;font-size:.93rem}
+.empty{color:#5d5a7e}
+.trackHead{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap}
+.light .secondary{color:#1d1a33;border-color:#1d1a33}
+/* footer */
+.footer{padding:56px 0 34px;border-top:1px solid var(--line);color:var(--muted)}
+.footerInner{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:32px}
+.footer h4{margin:0 0 12px;color:#fff;font:400 1.2rem/1 var(--display)}
+.footer a:not(.brand):hover{color:var(--saffron)}.footer ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.copy{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);font-size:.84rem}
+/* toast + modal */
+.toast{position:fixed;bottom:20px;inset-inline-end:20px;z-index:60;background:var(--teal);color:var(--ink);border:2px solid #000;font-weight:600;padding:12px 18px;border-radius:14px;box-shadow:-4px 4px 0 #000;display:none;max-width:calc(100% - 40px)}
+.modalBackdrop{position:fixed;inset:0;background:#0a0618d9;z-index:50;display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(4px)}
+.modal{width:min(460px,100%);background:#fff;color:#1d1a33;border:3px solid #000;border-radius:24px;padding:30px;position:relative;box-shadow:-8px 8px 0 var(--saffron)}
+.modal h2{margin:0 0 6px;font:400 1.9rem/1.2 var(--display)}.modal>p{color:#5d5a7e;margin:0 0 18px}
+.close{position:absolute;left:16px;top:16px;border:2px solid #000;background:#fff;border-radius:10px;width:36px;height:36px;cursor:pointer;font-size:1.2rem;line-height:1}
+.authOnly{display:none!important}body.in .authOnly{display:revert!important}body.in .guestOnly{display:none!important}
+.userChip{align-items:center;gap:10px;font-size:.9rem}body.in .userChip.authOnly{display:flex!important}
+.userChip img,.avatar{width:36px;height:36px;border-radius:50%;border:2px solid #000;object-fit:cover;background:var(--saffron)}
+.artistGrid,.pkgGrid{display:grid;gap:24px}.artistGrid{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}.pkgGrid{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.artist{background:#fff;border:3px solid #000;border-radius:22px;padding:24px;box-shadow:-6px 6px 0 #000;text-align:center}
+.artist .avatar{width:88px;height:88px;margin:0 auto 12px;display:block}
+.artist h3{margin:0;font:400 1.5rem/1.3 var(--display)}.artist .meta{color:#5d5a7e;font-size:.9rem;margin:4px 0 16px}
+.badge{display:inline-block;padding:2px 12px;border-radius:99px;border:2px solid #000;font-size:.8rem;font-weight:600;background:var(--teal);color:var(--ink)}
+.pkg{background:#fff;color:#1d1a33;border:3px solid #000;border-radius:24px;padding:30px 28px;box-shadow:-6px 6px 0 #000;display:flex;flex-direction:column;position:relative}
+.pkg.featured{background:var(--saffron);transform:translateY(-8px)}
+.pkg h3{margin:0;font:400 1.7rem/1.2 var(--display)}
+.price{font:400 3.2rem/1 var(--display);margin:10px 0 18px}.price small{font:500 .9rem var(--body);color:#5d5a7e}
+.pkg ul{list-style:none;margin:0 0 24px;padding:0;display:grid;gap:8px;flex:1}.pkg li{display:flex;gap:10px;font-size:.95rem}.pkg li:before{content:"✓";font-weight:700;color:var(--coral)}
+.pkg .flag{position:absolute;top:-15px;inset-inline-start:22px;background:var(--coral);color:#fff;border:2px solid #000;border-radius:99px;padding:2px 14px;font-size:.8rem;font-weight:600}
+.st{display:inline-block;padding:1px 12px;border-radius:99px;border:2px solid #000;font-size:.78rem;font-weight:600;background:var(--saffron);color:var(--ink)}.st.in_progress{background:var(--lilac)}.st.done{background:var(--teal)}.st.cancelled{background:#ddd}
+.joinBox{max-width:640px;background:#fff;color:#1d1a33;padding:30px;border:3px solid #000;border-radius:24px;box-shadow:-8px 8px 0 var(--teal),-8px 8px 0 3px #000}
+.joinBox h3{margin:0 0 10px;font:400 1.8rem/1.2 var(--display)}.joinBox>p{color:#5d5a7e}
+.gbtn{width:100%;margin-top:12px}.gmark{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#fff;border:2px solid #000;font:700 .85rem/1 var(--body)}
+@media(max-width:1100px){.links a{padding:8px 9px;font-size:.84rem}}
+@media(max-width:900px){
+.links,.navLogin{display:none}body.in .userChip.authOnly{display:none!important}.menu{display:inline-flex}
+.mobileLinks.open{display:flex;flex-direction:column;gap:4px;padding:6px 4% 18px}.mobileLinks a{padding:10px 14px;border-radius:12px}
+.heroGrid,.ideaLayout,.requestPanel{grid-template-columns:1fr}.heroGrid{padding:44px 0 56px}.heroArt{min-height:420px}
+.steps{grid-template-columns:repeat(2,1fr)}.serviceGrid,.portfolioGrid{grid-template-columns:1fr}.footerInner{grid-template-columns:1fr}
+.cta{padding:32px}.section{padding:64px 0}}
+@media(max-width:520px){.steps{grid-template-columns:1fr}.ideaBox,.requestPanel form{padding:22px}.sticker{font-size:.8rem}.s1{right:0}.s2{left:0}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+<symbol id="i-face" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14.5c1 1.6 2.4 2.3 4 2.3s3-.7 4-2.3M9 9.5v.5M15 9.5v.5"/></symbol>
+<symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M7 6l2.5 4M12.5 6 15 10M17.5 6 20 10"/></symbol>
+<symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+<symbol id="i-burger" viewBox="0 0 24 24"><path d="M4 11a8 6 0 0 1 16 0zM3 14h18M4 17h16a0 0 0 0 1 0 0 3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/></symbol>
+<symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 18h2"/></symbol>
+<symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v5M12 16v5M3 12h5M16 12h5M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3"/></symbol>
+<symbol id="i-share" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+</defs></svg>
+
+<header class="topbar">
+  <div class="wrap nav">
+    <a class="brand" href="#home" data-page-link="home" aria-label="عاين AD Studio">
+      <span class="logo">ع</span><span>عاين<small>الإعلان البخلّيك تعاين مرتين</small></span>
+    </a>
+    <nav class="links" aria-label="القائمة الرئيسية">
+      <a href="#home" data-page-link="home">الرئيسية</a><a href="#services" data-page-link="services">خدماتنا</a><a href="#packages" data-page-link="packages">الباقات</a><a href="#artists" data-page-link="artists">الفنانون</a><a href="#ideas" data-page-link="ideas">مولّد الأفكار</a><a href="#portfolio" data-page-link="portfolio">معرض الأعمال</a><a href="#request" data-page-link="request">اطلب إعلان</a><a class="authOnly" href="#track" data-page-link="track">طلباتي</a>
+    </nav>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn primary smallbtn navLogin guestOnly" id="loginOpen">دخول / تسجيل</button><span class="userChip authOnly navLogin"><img id="userPic" class="avatar" alt="" referrerpolicy="no-referrer"><span id="userName"></span><button class="btn secondary smallbtn" id="logoutBtn">خروج</button></span>
+      <button class="btn secondary smallbtn menu" id="menuToggle" aria-label="فتح القائمة" aria-expanded="false">☰</button>
+    </div>
+  </div>
+  <nav class="mobileLinks wrap" id="mobileLinks">
+    <a href="#home" data-page-link="home">الرئيسية</a><a href="#services" data-page-link="services">خدماتنا</a><a href="#packages" data-page-link="packages">الباقات</a><a href="#artists" data-page-link="artists">الفنانون</a><a href="#ideas" data-page-link="ideas">مولّد الأفكار</a><a href="#portfolio" data-page-link="portfolio">معرض الأعمال</a><a href="#request" data-page-link="request">اطلب إعلان</a><a class="authOnly" href="#track" data-page-link="track">متابعة طلباتي</a><a class="guestOnly" href="#" id="loginOpenM">دخول / تسجيل</a><a class="authOnly" href="#" id="logoutM">تسجيل الخروج</a>
+  </nav>
+</header>
+
+<main>
+<!-- HOME -->
+<section class="page-view active" id="home">
+  <div class="hero">
+    <div class="wrap heroGrid">
+      <div>
+        <span class="tag"><svg class="ico"><use href="#i-face"/></svg>استوديو إعلانات بروح سودانية</span>
+        <h1>إعلانك ما بس يتشاف…<br><em>يتعاين مرتين.</em></h1>
+        <p class="lead">نحوّل فكرتك لحكاية، ضحكة، أو مشهد ما بتنساه. إعلانات كرتونية ومحتوى إبداعي يخلي الناس توقف، تتفرّج، وتتكلم عن علامتك.</p>
+        <div class="actions">
+          <a class="btn primary" href="#request" data-page-link="request">خلينا نبدأ إعلانك <svg class="ico"><use href="#i-arrow"/></svg></a>
+          <a class="btn secondary" href="#ideas" data-page-link="ideas">جرّب مولّد الأفكار</a>
+        </div>
+        <div class="proof"><span><svg class="ico"><use href="#i-bulb"/></svg>أفكار خارج الصندوق</span><span><svg class="ico"><use href="#i-pin"/></svg>روح سودانية أصيلة</span><span><svg class="ico"><use href="#i-share"/></svg>محتوى قابل للمشاركة</span></div>
+      </div>
+      <div class="heroArt" aria-hidden="true">
+        <div class="sticker s1 float"><svg class="ico"><use href="#i-spark"/></svg>فكرة تلفت الانتباه</div>
+        <div class="phone">
+          <svg viewBox="0 0 300 567" xmlns="http://www.w3.org/2000/svg">
+            <rect width="300" height="567" fill="#8B7CFF"/>
+            <circle cx="150" cy="250" r="190" fill="#FFC21A" opacity=".25"/>
+            <rect x="105" y="14" width="90" height="18" rx="9" fill="#000"/>
+            <g stroke="#000" stroke-width="5" stroke-linejoin="round">
+              <rect x="70" y="330" width="160" height="150" rx="60" fill="#19C2B0"/>
+              <circle cx="150" cy="235" r="88" fill="#FFD9A0"/>
+              <path d="M62 215c0-52 38-86 88-86s88 34 88 86c-24-16-58-24-88-24s-64 8-88 24z" fill="#fff"/>
+              <path d="M150 129c-6-18 4-30 14-34-2 12 2 20 8 26" fill="#fff"/>
+            </g>
+            <g stroke="#000" stroke-width="5" stroke-linecap="round">
+              <circle cx="118" cy="240" r="17" fill="#fff"/><circle cx="182" cy="240" r="17" fill="#fff"/>
+              <circle cx="122" cy="243" r="6" fill="#000"/><circle cx="178" cy="243" r="6" fill="#000"/>
+              <path d="M112 282c10 26 66 26 76 0z" fill="#FF5B3A"/>
+              <path d="M120 208q-8-10-20-6M180 208q8-10 20-6" fill="none"/>
+            </g>
+            <g stroke="#000" stroke-width="4"><path d="M196 110h72a14 14 0 0 1 14 14v40a14 14 0 0 1-14 14h-40l-22 18v-18h-10a14 14 0 0 1-14-14v-40a14 14 0 0 1 14-14z" fill="#fff"/></g>
+            <text x="236" y="152" text-anchor="middle" font-family="Lalezar,Tahoma" font-size="26" fill="#130F2A">يا سلام!</text>
+            <circle cx="150" cy="520" r="22" fill="#FFC21A" stroke="#000" stroke-width="4"/><path d="M144 510v20l17-10z" fill="#000"/>
+          </svg>
+        </div>
+        <div class="sticker s2 float"><svg class="ico"><use href="#i-film"/></svg>من الفكرة للحكاية</div>
+      </div>
+    </div>
+  </div>
+  <div class="marquee" aria-hidden="true"><div class="track">
+    <span>إعلانات كرتونية</span><span>ريلز وحكايات قصيرة</span><span>تطوير أفكار إعلانية</span><span>شخصيات سودانية</span><span>إعلانات كرتونية</span><span>ريلز وحكايات قصيرة</span><span>تطوير أفكار إعلانية</span><span>شخصيات سودانية</span>
+    <span>إعلانات كرتونية</span><span>ريلز وحكايات قصيرة</span><span>تطوير أفكار إعلانية</span><span>شخصيات سودانية</span><span>إعلانات كرتونية</span><span>ريلز وحكايات قصيرة</span><span>تطوير أفكار إعلانية</span><span>شخصيات سودانية</span>
+  </div></div>
+  <div class="section">
+    <div class="wrap">
+      <div class="sectionHead"><h2>كيف نصنع إعلانك</h2><p>أربع خطوات واضحة من أول فكرة لحدّ ما يوصل الإعلان للناس.</p></div>
+      <div class="steps">
+        <div class="step"><h3>نسمع فكرتك</h3><p>تحكي لينا عن مشروعك والنتيجة العايز تحققها.</p></div>
+        <div class="step"><h3>نكتب الحكاية</h3><p>نطلع بسيناريو وشخصية بلهجة سودانية قريبة من الناس.</p></div>
+        <div class="step"><h3>نرسم ونحرّك</h3><p>نحوّل السيناريو لمشاهد كرتونية بخطّاف قوي من أول ثانية.</p></div>
+        <div class="step"><h3>نسلّم وننشر</h3><p>تستلم الإعلان جاهز للمشاركة على منصاتك.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="wrap"><div class="cta"><h2>عندك مشروع؟ خلّي الناس تتكلم عنو.</h2><div class="actions"><a class="btn" href="#artistjoin" data-page-link="artistjoin" style="background:var(--ink);color:#fff">سجّل كفنان</a><a class="btn" href="#request" data-page-link="request">اطلب إعلانك <svg class="ico"><use href="#i-arrow"/></svg></a></div></div></div>
+</section>
+
+<!-- SERVICES -->
+<section class="page-view light" id="services">
+  <div class="wrap pageTop"><span class="tag">خدمات عاين</span><h1>خدماتنا الإعلانية</h1><p>اختار الخدمة المناسبة لمشروعك، وخلّينا نحوّل فكرتك لإعلان يستحق المشاهدة.</p></div>
+  <div class="wrap pageContent">
+    <div class="serviceGrid">
+      <article class="service"><div class="serviceIcon"><svg class="ico"><use href="#i-face"/></svg></div><h3>إعلانات كرتونية</h3><p>شخصيات ومواقف كوميدية سودانية تقدّم منتجك بطريقة خفيفة وسهلة المشاركة.</p><a class="textLink" href="#request" data-service="إعلان كرتوني">اطلب الخدمة <svg class="ico"><use href="#i-arrow"/></svg></a></article>
+      <article class="service"><div class="serviceIcon"><svg class="ico"><use href="#i-film"/></svg></div><h3>ريلز وحكايات قصيرة</h3><p>مشاهد سريعة بخطّاف قوي من أول ثانية، مناسبة للمحتوى الاجتماعي.</p><a class="textLink" href="#request" data-service="ريلز وحكاية قصيرة">اطلب الخدمة <svg class="ico"><use href="#i-arrow"/></svg></a></article>
+      <article class="service"><div class="serviceIcon"><svg class="ico"><use href="#i-bulb"/></svg></div><h3>تطوير فكرة إعلانية</h3><p>نساعدك تلقى زاوية جديدة تحوّل ميزة منتجك لحكاية تستحق المشاهدة.</p><a class="textLink" href="#ideas" data-page-link="ideas">ولّد فكرة الآن <svg class="ico"><use href="#i-arrow"/></svg></a></article>
+    </div>
+  </div>
+</section>
+
+<!-- IDEAS -->
+<section class="page-view" id="ideas">
+  <div class="wrap pageTop"><span class="tag">مختبر الأفكار</span><h1>مولّد الأفكار الإعلانية</h1></div>
+  <div class="wrap pageContent ideaLayout">
+    <div class="ideaIntro"><h2>أدّي الفكرة فرصة… وخلي الإبداع يشتغل.</h2><p>اكتب اسم مشروعك ونوعه، وولّد مسودة إعلان باللهجة السودانية. دي أداة تجريبية داخل المتصفح؛ تقدر تعدّل النص وتنسخه مباشرة.</p></div>
+    <div class="ideaBox">
+      <h3>مولّد أفكار عاين</h3>
+      <label class="field"><span>اسم المشروع أو المنتج</span><input id="ideaName" placeholder="مثلاً: مطعم الحوش" maxlength="70"></label>
+      <label class="field"><span>نوع النشاط</span><select id="ideaType"><option value="مطعم">مطعم أو كافيه</option><option value="متجر">متجر أو محل</option><option value="خدمة">خدمة أو مشروع</option><option value="منتج">منتج جديد</option><option value="تطبيق">تطبيق أو منصة</option></select></label>
+      <label class="field"><span>شنو الميزة البتخلي الناس تختارك؟</span><input id="ideaFeature" placeholder="مثلاً: الطعم البيذكّرنا بالبيت" maxlength="120"></label>
+      <button class="btn primary" id="generateIdea" style="width:100%">ولّد لي فكرة</button>
+      <div class="result" id="ideaResult" aria-live="polite"></div>
+      <button class="btn" id="copyIdea" style="display:none;margin-top:14px">انسخ الفكرة</button>
+    </div>
+  </div>
+</section>
+
+<!-- PORTFOLIO -->
+<section class="page-view light" id="portfolio">
+  <div class="wrap pageTop"><span class="tag">معرض الأعمال</span><h1>أفكار من عالم عاين</h1><p>نماذج شكلية لتوضيح اتجاهات الإبداع.</p></div>
+  <div class="wrap pageContent">
+    <div class="portfolioGrid">
+      <article class="portfolio"><svg class="ico big"><use href="#i-burger"/></svg><h3>حكاية لقمة</h3><p>تصوّر إعلاني لمطعم بطابع كوميدي.</p></article>
+      <article class="portfolio"><svg class="ico big"><use href="#i-bag"/></svg><h3>السوق في جيبك</h3><p>فكرة ترويجية لمتجر وخدمة توصيل.</p></article>
+      <article class="portfolio"><svg class="ico big"><use href="#i-phone"/></svg><h3>تطبيق بيفهمك</h3><p>فكرة تعريفية لخدمة رقمية.</p></article>
+    </div>
+    <p class="note">هذه نماذج شكلية، وليست أعمالاً منشورة أو لعملاء حقيقيين.</p>
+  </div>
+</section>
+
+<!-- PACKAGES -->
+<section class="page-view" id="packages">
+  <div class="wrap pageTop"><span class="tag">الباقات</span><h1>باقات عاين</h1><p>اختار الباقة البتناسب مشروعك، وخلينا نبدأ.</p></div>
+  <div class="wrap pageContent" style="padding-top:50px"><div class="pkgGrid" id="pkgGrid"><p style="color:var(--muted)">جاري تحميل الباقات…</p></div></div>
+</section>
+<!-- ARTISTS -->
+<section class="page-view light" id="artists">
+  <div class="wrap pageTop trackHead"><div><span class="tag">الفنانون</span><h1>فنانو عاين</h1><p>فنانون معتمدون راجعنا صفحاتهم بنفسنا.</p></div><a class="btn primary" href="#artistjoin" data-page-link="artistjoin">انضم كفنان</a></div>
+  <div class="wrap pageContent"><div class="artistGrid" id="artistGrid"></div></div>
+</section>
+<!-- ARTIST JOIN -->
+<section class="page-view" id="artistjoin">
+  <div class="wrap pageTop"><span class="tag">للفنانين</span><h1>سجّل كفنان</h1></div>
+  <div class="wrap pageContent"><div class="joinBox" id="joinBox"></div></div>
+</section>
+
+<!-- REQUEST -->
+<section class="page-view" id="request">
+  <div class="wrap pageContent requestPanel" style="padding-top:70px">
+    <div>
+      <span class="tag">طلب إعلان جديد</span>
+      <h2>عندك مشروع؟<br>نسمع فكرتك.</h2>
+      <p>سجّل الدخول بحساب قوقل، املأ التفاصيل الأساسية، وطلبك بيوصل لفريق عاين مباشرة. تتابع حالتو من صفحة "طلباتي".</p>
+      <div class="socials"><a href="https://www.facebook.com/profile.php?id=61594511431507&mibextid=ZbWKwL" target="_blank" rel="noopener">صفحة عاين على فيسبوك ↗</a><a href="https://www.facebook.com/wadelsawy?mibextid=ZbWKwL" target="_blank" rel="noopener">ود الصاوي ↗</a></div>
+    </div>
+    <form id="requestForm">
+      <label class="field"><span>اسمك</span><input id="clientName" required maxlength="70" placeholder="الاسم أو اسم النشاط"></label>
+      <label class="field"><span>رقم التواصل</span><input id="clientPhone" required inputmode="tel" maxlength="30" placeholder="رقم واتساب أو هاتف"></label>
+      <label class="field"><span>الباقة</span><select id="pkgSelect"><option value="">بدون باقة محددة</option></select></label>
+      <label class="field"><span>نوع الإعلان</span><select id="serviceType"><option>إعلان كرتوني</option><option>ريلز وحكاية قصيرة</option><option>فكرة إعلانية</option><option>تصميم منشور</option><option>إعلان آخر</option></select></label>
+      <label class="field"><span>وصف الفكرة</span><textarea id="clientBrief" required maxlength="1000" placeholder="احكي لينا عن مشروعك والنتيجة العايز تحققها…"></textarea></label>
+      <button class="btn primary" type="submit" style="width:100%">أرسل الطلب</button>
+      <div class="notice">لازم تسجّل الدخول بحساب قوقل قبل الإرسال.</div>
+      <div class="result" id="requestResult" aria-live="polite"></div>
+    </form>
+  </div>
+</section>
+
+<!-- TRACK -->
+<section class="page-view light" id="track">
+  <div class="wrap pageTop trackHead"><div><span class="tag">طلباتي</span><h1>متابعة طلباتي</h1><p>الطلبات المرتبطة بحسابك وحالة كل واحد.</p></div></div>
+  <div class="wrap pageContent"><div class="orders" id="ordersList"><p class="empty">لسه ما في طلبات محفوظة. أرسل طلبك من النموذج.</p></div></div>
+</section>
+</main>
+
+<footer class="footer"><div class="wrap">
+  <div class="footerInner">
+    <div><a class="brand" href="#home" data-page-link="home"><span class="logo">ع</span><span>عاين<small>AD STUDIO</small></span></a><p style="max-width:34ch;margin:14px 0 0">استوديو إعلانات كرتونية بروح سودانية. الإعلان البخلّيك تعاين مرتين.</p></div>
+    <div><h4>الصفحات</h4><ul><li><a href="#services" data-page-link="services">خدماتنا</a></li><li><a href="#packages" data-page-link="packages">الباقات</a></li><li><a href="#artists" data-page-link="artists">الفنانون</a></li><li><a href="#ideas" data-page-link="ideas">مولّد الأفكار</a></li><li><a href="#portfolio" data-page-link="portfolio">معرض الأعمال</a></li><li><a href="#request" data-page-link="request">اطلب إعلان</a></li></ul></div>
+    <div><h4>تواصل</h4><ul><li><a href="https://www.facebook.com/profile.php?id=61594511431507&mibextid=ZbWKwL" target="_blank" rel="noopener">فيسبوك ↗</a></li><li><a href="https://www.facebook.com/wadelsawy?mibextid=ZbWKwL" target="_blank" rel="noopener">ود الصاوي ↗</a></li></ul></div>
+  </div>
+  <div class="copy">© <span id="year"></span> عاين AD Studio. جميع الحقوق محفوظة.</div>
+</div></footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modalBackdrop" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <div class="modal"><button class="close" id="loginClose" aria-label="إغلاق">×</button><h2 id="loginTitle">أهلاً بيك في عاين</h2><p>سجّل بحساب قوقل مرة واحدة بس. اختار نوع حسابك:</p>
+  <button class="btn primary gbtn" id="gAdv"><span class="gmark">G</span>ادخل كمعلن بحساب قوقل</button>
+  <button class="btn gbtn" id="gArt"><span class="gmark">G</span>سجّل كفنان بحساب قوقل</button>
+  <div class="notice">لو سجلت قبل كده، حندخلك مباشرة على حسابك.</div></div>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const storageKey='ayin_ad_studio_demo_orders_v1';
+  function toast(m){const el=$('toast');el.textContent=m;el.style.display='block';clearTimeout(window.__ayinToast);window.__ayinToast=setTimeout(()=>el.style.display='none',3000)}
+  function readOrders(){try{const v=JSON.parse(localStorage.getItem(storageKey)||'[]');return Array.isArray(v)?v:[]}catch(e){return[]}}
+  function writeOrders(items){try{localStorage.setItem(storageKey,JSON.stringify(items));return true}catch(e){toast('تعذّر الحفظ في المتصفح. جرّب فتح الصفحة في Chrome.');return false}}
+  function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function renderOrders(){const list=$('ordersList'),o=readOrders();if(!o.length){list.innerHTML='<p class="empty">لسه ما في طلبات محفوظة. أرسل طلبك من النموذج.</p>';return}
+    list.innerHTML=o.slice().reverse().map(x=>'<div class="order"><b>'+esc(x.id)+' · '+esc(x.service)+'</b><br><small>'+esc(x.name)+' — '+esc(x.date)+'</small><p>'+esc(x.brief)+'</p></div>').join('')}
+  $('year').textContent=new Date().getFullYear();
+
+  const validPages=['home','services','packages','artists','artistjoin','ideas','portfolio','request','track'];
+  function showPage(page,updateHash=true){
+    if(!validPages.includes(page))page='home';
+    document.querySelectorAll('main .page-view').forEach(el=>el.classList.toggle('active',el.id===page));
+    document.querySelectorAll('.links [data-page-link],.mobileLinks [data-page-link]').forEach(el=>el.classList.toggle('active',el.dataset.pageLink===page));
+    $('mobileLinks').classList.remove('open');$('menuToggle').setAttribute('aria-expanded','false');
+    if(updateHash&&location.hash!=='#'+page)history.pushState({page},'','#'+page);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  document.querySelectorAll('[data-page-link]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();showPage(a.dataset.pageLink)}));
+  window.addEventListener('popstate',()=>showPage(location.hash.slice(1)||'home',false));
+  showPage(location.hash.slice(1)||'home',false);
+  $('menuToggle').addEventListener('click',()=>{const o=$('mobileLinks').classList.toggle('open');$('menuToggle').setAttribute('aria-expanded',o)});
+  document.querySelectorAll('[data-service]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();$('serviceType').value=a.dataset.service;showPage('request')}));
+
+  let currentIdea='';
+  $('generateIdea').addEventListener('click',()=>{
+    const name=$('ideaName').value.trim()||'مشروعك',type=$('ideaType').value,feature=$('ideaFeature').value.trim()||'الجودة والمعاملة الطيبة';
+    const ideas=[
+      'الناس كلها بتقول '+name+' '+(type==='مطعم'?'أكلو سمح':'حاجتو مختلفة')+'… لكن كركاب قال لازم يتأكد بنفسو! دخل يجرب، وبعد أول لحظة قال: «يا جماعة، الحكاية دي ما بتتفوت!»\n\nالفكرة: مشهد كوميدي قصير ينتهي بميزة المشروع: '+feature+'.\n\nالخاتمة: '+name+' — تعال جرّب واحكم بنفسك.',
+      'زول مستعجل وداير حل سريع، وكل مرة يلقى نفسو في موقف يضحّك. صاحبو يقول ليهو: «ياخ الحل قدامك!» ويعرّفو بـ '+name+'.\n\nالفكرة: ريلز من 10–15 ثانية، موقف واضح من أول ثانية، وبعدها تظهر ميزة المشروع: '+feature+'.\n\nالشعار المقترح: '+name+'… اختصار الحكاية.',
+      'المشهد يبدأ بسؤال: «إنت لسه ما جرّبت '+name+'؟!» الناس في الخلفية تتبادل نظرات استغراب، وبعدها نكتشف السبب البخلي الناس تختارو: '+feature+'.\n\nالفكرة: حوار سوداني خفيف وشخصية مميزة تتكرر في أكثر من حلقة.\n\nالخاتمة: '+name+' — حكاية تستاهل تتقال.'
+    ];
+    currentIdea=ideas[Math.floor(Math.random()*ideas.length)];
+    $('ideaResult').textContent=currentIdea;$('ideaResult').style.display='block';$('copyIdea').style.display='inline-flex';
+  });
+  $('copyIdea').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(currentIdea);toast('تم نسخ الفكرة.')}catch(e){const a=document.createElement('textarea');a.value=currentIdea;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('تم نسخ الفكرة.')}catch(err){toast('حدد النص وانسخه يدوياً.')}a.remove()}});
+
+  window.AY={$,toast,esc,showPage};
+})();
+</script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,addDoc,collection,query,where,orderBy,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ===== ضع إعدادات مشروع Firebase هنا ===== */
+const firebaseConfig={apiKey:"AIzaSyBIxmk6lu-xNJ1sOLAbCQipnvv5M_k1eXU",authDomain:"ayn-marketplace.firebaseapp.com",projectId:"ayn-marketplace",storageBucket:"ayn-marketplace.firebasestorage.app",messagingSenderId:"1053290254316",appId:"1:1053290254316:web:e6a35661a75a31615b3ac9"};
+/* ========================================= */
+
+const {$,toast,esc,showPage}=window.AY;
+const ok=!firebaseConfig.apiKey.startsWith('YOUR');
+let auth,db,user=null,myArtist=null,myAds=[],pkgs=[],unsubs=[];
+const fmt=n=>Number(n||0).toLocaleString('ar-EG');
+const safeUrl=u=>/^https?:\/\//i.test(u)?u:'#';
+const ST={new:'جديد',in_progress:'قيد التنفيذ',done:'مكتمل',cancelled:'ملغي'};
+const needSetup=()=>toast('أضف إعدادات Firebase في الملف أولاً.');
+if(ok){auth=getAuth(initializeApp(firebaseConfig));db=getFirestore()}
+
+/* modal + auth buttons */
+const modal=$('loginModal'),openLogin=e=>{if(e)e.preventDefault();modal.style.display='flex'},closeLogin=()=>modal.style.display='none';
+$('loginOpen').onclick=openLogin;$('loginOpenM').onclick=e=>{$('mobileLinks').classList.remove('open');openLogin(e)};
+$('loginClose').onclick=closeLogin;modal.onclick=e=>{if(e.target===modal)closeLogin()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLogin()});
+const logout=e=>{if(e)e.preventDefault();$('mobileLinks').classList.remove('open');if(ok)signOut(auth)};
+$('logoutBtn').onclick=logout;$('logoutM').onclick=logout;
+$('gAdv').onclick=()=>signIn('advertiser');$('gArt').onclick=()=>signIn('artist');
+
+async function signIn(role){
+  if(!ok)return needSetup();
+  try{
+    const r=await signInWithPopup(auth,new GoogleAuthProvider());closeLogin();
+    const ref=doc(db,'users',r.user.uid);
+    if(!(await getDoc(ref)).exists())await setDoc(ref,{name:r.user.displayName||'',email:r.user.email||'',photo:r.user.photoURL||'',role,createdAt:serverTimestamp()});
+    toast('أهلاً بيك '+(r.user.displayName||'').split(' ')[0]+'.');
+    if(role==='artist')showPage('artistjoin');
+  }catch(e){if(e.code!=='auth/popup-closed-by-user')toast('تعذّر تسجيل الدخول ('+(e.code||'خطأ')+').')}
+}
+
+/* public data */
+function renderPkgs(){
+  $('pkgGrid').innerHTML=pkgs.length?pkgs.map(p=>'<article class="pkg'+(p.featured?' featured':'')+'">'+(p.featured?'<span class="flag">الأكثر طلباً</span>':'')+'<h3>'+esc(p.title)+'</h3><div class="price">'+fmt(p.price)+' <small>'+esc(p.currency||'')+'</small></div><ul>'+(p.features||[]).map(f=>'<li>'+esc(f)+'</li>').join('')+'</ul><button class="btn'+(p.featured?'':' primary')+'" data-pkg="'+esc(p.id)+'">اطلب الباقة</button></article>').join(''):'<p style="color:var(--muted)">الباقات قريباً. تابعنا.</p>';
+  $('pkgSelect').innerHTML='<option value="">بدون باقة محددة</option>'+pkgs.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.title)+' — '+fmt(p.price)+' '+esc(p.currency||'')+'</option>').join('');
+}
+$('pkgGrid').onclick=e=>{const b=e.target.closest('[data-pkg]');if(b){$('pkgSelect').value=b.dataset.pkg;showPage('request')}};
+function renderArtists(list){
+  list.sort((a,b)=>(b.followers||0)-(a.followers||0));
+  $('artistGrid').innerHTML=list.length?list.map(a=>'<article class="artist"><img class="avatar" src="'+esc(a.photo||'')+'" referrerpolicy="no-referrer" alt=""><h3>'+esc(a.name)+'</h3><div class="meta">'+esc(a.platform)+' · '+fmt(a.followers)+' متابع</div><p style="font-size:.9rem;margin:0 0 14px">'+esc(a.bio||'')+'</p><a class="btn smallbtn primary" href="'+esc(safeUrl(a.pageUrl))+'" target="_blank" rel="noopener">زيارة الصفحة ↗</a></article>').join(''):'<p class="empty">لسه ما في فنانين معتمدين. كن أول واحد!</p>';
+}
+if(ok){
+  onSnapshot(query(collection(db,'packages'),orderBy('order')),s=>{pkgs=s.docs.map(d=>({id:d.id,...d.data()}));renderPkgs()},()=>{$('pkgGrid').innerHTML='<p style="color:var(--muted)">تعذّر تحميل الباقات.</p>'});
+  onSnapshot(query(collection(db,'artists'),where('status','==','approved')),s=>renderArtists(s.docs.map(d=>d.data())),()=>{});
+}else{renderPkgs();renderArtists([])}
+
+/* account-bound views */
+function renderJoin(){
+  const b=$('joinBox');
+  if(!ok){b.innerHTML='<h3>التسجيل غير مفعّل</h3><p>أضف إعدادات Firebase أولاً.</p>';return}
+  if(!user){b.innerHTML='<h3>انضم لفنانين عاين</h3><p>بنراجع صفحتك وعدد المتابعين، وبعد الموافقة بتظهر طوالي في قسم الفنانين.</p><button class="btn primary gbtn" id="joinGoogle"><span class="gmark">G</span>سجّل بحساب قوقل</button>';$('joinGoogle').onclick=()=>signIn('artist');return}
+  if(myArtist){b.innerHTML=myArtist.status==='approved'?'<h3>تمت الموافقة <span class="badge">معتمد</span></h3><p>صفحتك ظاهرة الآن في قسم الفنانين.</p><a class="btn primary" href="#artists" data-pg="artists">شوف صفحتك</a>':'<h3>طلبك قيد المراجعة <span class="st">انتظار</span></h3><p>بنراجع صفحتك وعدد المتابعين. حتظهر في قسم الفنانين بعد الموافقة.</p>';
+    const l=b.querySelector('[data-pg]');if(l)l.onclick=e=>{e.preventDefault();showPage('artists')};return}
+  b.innerHTML='<h3>أهلاً '+esc((user.displayName||'').split(' ')[0])+'، كمّل بياناتك</h3><p>الحساب: '+esc(user.email||'')+'</p><form id="joinForm"><label class="field"><span>المنصة الأساسية</span><select id="jPlatform"><option>فيسبوك</option><option>انستغرام</option><option>تيك توك</option><option>يوتيوب</option><option>أخرى</option></select></label><label class="field"><span>رابط صفحتك</span><input id="jUrl" type="url" required placeholder="https://"></label><label class="field"><span>عدد المتابعين</span><input id="jFollowers" type="number" min="0" required inputmode="numeric"></label><label class="field"><span>نبذة عنك وعن شغلك</span><textarea id="jBio" maxlength="400" required></textarea></label><button class="btn primary" type="submit" style="width:100%">أرسل للمراجعة</button></form>';
+  $('joinForm').onsubmit=async e=>{e.preventDefault();
+    try{await setDoc(doc(db,'artists',user.uid),{uid:user.uid,name:user.displayName||'',email:user.email||'',photo:user.photoURL||'',platform:$('jPlatform').value,pageUrl:$('jUrl').value.trim(),followers:Number($('jFollowers').value),bio:$('jBio').value.trim(),status:'pending',createdAt:serverTimestamp()});toast('وصل طلبك. حنراجع صفحتك.')}catch(err){toast('تعذّر إرسال الطلب.')}};
+}
+function renderAds(){
+  const l=$('ordersList');
+  if(!user){l.innerHTML='<p class="empty">سجّل الدخول عشان تشوف طلباتك.</p>';return}
+  const a=myAds.slice().sort((x,y)=>(y.createdAt?.seconds||0)-(x.createdAt?.seconds||0));
+  l.innerHTML=a.length?a.map(x=>'<div class="order"><b>'+esc(x.service)+(x.packageTitle?' · '+esc(x.packageTitle):'')+'</b> <span class="st '+esc(x.status)+'">'+(ST[x.status]||'')+'</span><br><small>'+(x.createdAt?new Date(x.createdAt.seconds*1000).toLocaleDateString('ar-EG'):'')+(x.price?' — السعر: '+fmt(x.price):'')+'</small><p>'+esc(x.brief)+'</p></div>').join(''):'<p class="empty">لسه ما في طلبات. أرسل طلبك من صفحة "اطلب إعلان".</p>';
+}
+if(ok)onAuthStateChanged(auth,u=>{
+  user=u;unsubs.forEach(f=>f());unsubs=[];myArtist=null;myAds=[];
+  document.body.classList.toggle('in',!!u);
+  if(u){
+    $('userName').textContent=(u.displayName||'').split(' ')[0];$('userPic').src=u.photoURL||'';
+    if(!$('clientName').value)$('clientName').value=u.displayName||'';
+    unsubs.push(onSnapshot(doc(db,'artists',u.uid),s=>{myArtist=s.exists()?s.data():null;renderJoin()},()=>{}));
+    unsubs.push(onSnapshot(query(collection(db,'ads'),where('ownerUid','==',u.uid)),s=>{myAds=s.docs.map(d=>({id:d.id,...d.data()}));renderAds()},()=>{}));
+  }
+  renderJoin();renderAds();
+});
+
+/* request form */
+$('requestForm').onsubmit=async e=>{
+  e.preventDefault();
+  if(!ok)return needSetup();
+  if(!user){toast('سجّل الدخول بحساب قوقل أولاً.');openLogin();return}
+  const p=pkgs.find(x=>x.id===$('pkgSelect').value);
+  try{
+    await addDoc(collection(db,'ads'),{ownerUid:user.uid,ownerName:$('clientName').value.trim(),ownerEmail:user.email||'',phone:$('clientPhone').value.trim(),service:$('serviceType').value,packageId:p?p.id:'',packageTitle:p?p.title:'',brief:$('clientBrief').value.trim(),status:'new',createdAt:serverTimestamp()});
+    $('requestResult').textContent='وصل طلبك لفريق عاين. تقدر تتابعو من "طلباتي".';$('requestResult').style.display='block';e.target.reset();toast('تم إرسال الطلب.');
+  }catch(err){toast('تعذّر إرسال الطلب.')}
+};
+renderJoin();renderAds();
+</script>
+</body>
+</html>
