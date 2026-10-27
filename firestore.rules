@@ -1,0 +1,177 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    // ---------- Helper functions ----------
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() && request.auth.token.email_verified == true
+        && exists(/databases/$(db)/documents/admins/$(request.auth.uid));
+    }
+    function emailKey() { return request.auth.token.email.lower(); }
+    function mePath() { return /databases/$(db)/documents/users/$(request.auth.uid); }
+    function myRole() { return get(mePath()).data.role; }
+    // Active account: has a users profile and its status is not 'deactivated' (status is admin-writable only)
+    function isActive() {
+      return signedIn() && exists(mePath()) && get(mePath()).data.get('status', 'active') == 'active';
+    }
+    function cost() {
+      return exists(/databases/$(db)/documents/settings/site)
+        ? get(/databases/$(db)/documents/settings/site).data.get('pointsPerAd', 5) : 5;
+    }
+    function str(v, max) { return v is string && v.size() <= max; }
+
+    // ---------- Admins: readable only by the matching uid; never writable from a client ----------
+    match /admins/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // ---------- Email claim: one email = one account ----------
+    match /emails/{e} {
+      allow get: if signedIn() && (e == emailKey() || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isAdmin() || (signedIn() && e == emailKey()
+        && request.auth.token.email_verified == true
+        && request.resource.data.keys().hasOnly(['uid', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt == request.time);
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- Accounts: role is immutable for users; only admins change role/status ----------
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.auth.token.email_verified == true
+        && request.resource.data.keys().hasOnly(['name', 'email', 'photo', 'role', 'phone', 'createdAt'])
+        && request.resource.data.keys().hasAll(['name', 'email', 'role', 'createdAt'])
+        && request.resource.data.role in ['advertiser', 'artist']
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.createdAt == request.time
+        && str(request.resource.data.name, 100)
+        && str(request.resource.data.get('photo', ''), 500)
+        && str(request.resource.data.get('phone', ''), 30)
+        && exists(/databases/$(db)/documents/emails/$(emailKey()))
+        && get(/databases/$(db)/documents/emails/$(emailKey())).data.uid == uid;
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid && isActive()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'photo', 'phone'])
+        && str(request.resource.data.name, 100)
+        && str(request.resource.data.get('photo', ''), 500)
+        && str(request.resource.data.get('phone', ''), 30));
+      allow delete: if isAdmin();
+    }
+
+    // ---------- Role-switch and deactivation requests (executed by admins) ----------
+    match /accountRequests/{rid} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if signedIn() && isActive()
+        && request.resource.data.keys().hasOnly(['uid', 'type', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.type in ['role_artist', 'role_advertiser', 'deactivate']
+        && rid == request.auth.uid + '_' + request.resource.data.type
+        && (request.resource.data.type != 'role_artist' || myRole() == 'advertiser')
+        && (request.resource.data.type != 'role_advertiser' || myRole() == 'artist')
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+    }
+
+    // ---------- Artists: public sees approved only; points/status are admin-only ----------
+    match /artists/{uid} {
+      allow read: if (resource != null && resource.data.status == 'approved')
+                  || (signedIn() && (request.auth.uid == uid || isAdmin()));
+      allow create: if signedIn() && request.auth.uid == uid && isActive() && myRole() == 'artist'
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'photo', 'platform', 'pageUrl', 'followers', 'bio', 'status', 'createdAt'])
+        && request.resource.data.status == 'pending'
+        && request.resource.data.uid == uid
+        && str(request.resource.data.name, 100)
+        && str(request.resource.data.photo, 500)
+        && str(request.resource.data.platform, 30)
+        && str(request.resource.data.pageUrl, 300)
+        && request.resource.data.pageUrl.matches('https?://.+')
+        && request.resource.data.followers is number
+        && request.resource.data.followers >= 0
+        && str(request.resource.data.bio, 400)
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- Artist WhatsApp: private; single-doc reads only, after a consent lead ----------
+    match /contacts/{uid} {
+      allow get: if isAdmin() || (signedIn() && isActive() && (request.auth.uid == uid
+        || exists(/databases/$(db)/documents/leads/$(request.auth.uid + '_' + uid))));
+      allow list: if isAdmin();
+      allow create, update: if signedIn() && request.auth.uid == uid && isActive() && myRole() == 'artist'
+        && request.resource.data.keys().hasOnly(['wa'])
+        && str(request.resource.data.wa, 20);
+      allow delete: if isAdmin();
+    }
+
+    // ---------- Advertiser consent record before contacting an artist ----------
+    match /leads/{lid} {
+      allow get: if signedIn() && (lid.matches(request.auth.uid + '_.*') || isAdmin());
+      allow list: if isAdmin();
+      allow create: if signedIn() && isActive() && myRole() == 'advertiser'
+        && request.resource.data.keys().hasOnly(['advertiserUid', 'artistUid', 'createdAt'])
+        && request.resource.data.advertiserUid == request.auth.uid
+        && lid == request.auth.uid + '_' + request.resource.data.artistUid
+        && exists(/databases/$(db)/documents/artists/$(request.resource.data.artistUid))
+        && get(/databases/$(db)/documents/artists/$(request.resource.data.artistUid)).data.status == 'approved'
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // ---------- Public content: anyone reads, admins write ----------
+    match /packages/{id}  { allow read: if true; allow write: if isAdmin(); }
+    match /settings/{id}  { allow read: if true; allow write: if isAdmin(); }
+    match /portfolio/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /pointPacks/{id} { allow read: if true; allow write: if isAdmin(); }
+
+    // ---------- Top-up requests: must match the approved pack; approval is admin-only ----------
+    match /topups/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if signedIn() && isActive() && myRole() == 'artist'
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'packId', 'points', 'price', 'currency', 'status', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && exists(/databases/$(db)/documents/artists/$(request.auth.uid))
+        && get(/databases/$(db)/documents/artists/$(request.auth.uid)).data.status == 'approved'
+        && str(request.resource.data.name, 100)
+        && str(request.resource.data.packId, 60)
+        && exists(/databases/$(db)/documents/pointPacks/$(request.resource.data.packId))
+        && request.resource.data.points == get(/databases/$(db)/documents/pointPacks/$(request.resource.data.packId)).data.points
+        && request.resource.data.price == get(/databases/$(db)/documents/pointPacks/$(request.resource.data.packId)).data.price
+        && request.resource.data.currency == get(/databases/$(db)/documents/pointPacks/$(request.resource.data.packId)).data.get('currency', '')
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- Ad requests: id = uid_fingerprint (prevents duplicates) ----------
+    match /ads/{id} {
+      allow read: if signedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin() || resource.data.artistUid == request.auth.uid);
+      allow create: if signedIn() && isActive() && myRole() == 'advertiser'
+        && id.matches(request.auth.uid + '_[a-z0-9]{4,40}')
+        && request.resource.data.keys().hasOnly(['ownerUid', 'ownerName', 'ownerEmail', 'phone', 'service', 'packageId', 'packageTitle', 'brief', 'artistUid', 'artistName', 'status', 'createdAt'])
+        && request.resource.data.keys().hasAll(['ownerUid', 'ownerName', 'ownerEmail', 'phone', 'service', 'brief', 'artistUid', 'status', 'createdAt'])
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.status == 'new'
+        && request.resource.data.ownerEmail == request.auth.token.email
+        && str(request.resource.data.ownerName, 100)
+        && str(request.resource.data.phone, 30)
+        && str(request.resource.data.service, 60)
+        && str(request.resource.data.get('packageId', ''), 60)
+        && str(request.resource.data.get('packageTitle', ''), 100)
+        && str(request.resource.data.brief, 1000)
+        && request.resource.data.brief.size() > 0
+        && str(request.resource.data.artistUid, 60)
+        && str(request.resource.data.get('artistName', ''), 100)
+        && (request.resource.data.artistUid == '' || (
+             get(/databases/$(db)/documents/artists/$(request.resource.data.artistUid)).data.status == 'approved'
+          && get(/databases/$(db)/documents/artists/$(request.resource.data.artistUid)).data.get('points', 0) >= cost()))
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if isAdmin();
+    }
+  }
+}
