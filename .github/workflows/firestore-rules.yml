@@ -1,0 +1,50 @@
+name: Firestore rules tests
+
+on:
+  pull_request:
+    paths:
+      - "firestore.rules"
+      - "tests/**"
+      - "firebase.json"
+      - "package.json"
+      - ".github/workflows/firestore-rules.yml"
+  push:
+    branches:
+      - main
+
+jobs:
+  firestore-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Set up Java for the Firebase Emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Install test dependencies
+        run: npm install
+      - name: Preview dependency fixes without changing the repository
+        run: |
+          npm audit fix --dry-run > npm-audit-fix-preview.txt 2>&1 || true
+          echo "Dry-run preview (informational only; no dependency files are committed):"
+          sed -n '1,180p' npm-audit-fix-preview.txt
+      - name: Report dependency vulnerability details
+        run: |
+          npm audit --json > npm-audit.json || true
+          node -e 'const a=require("./npm-audit.json"); const v=a.vulnerabilities||{}; console.log(JSON.stringify({metadata:a.metadata?.vulnerabilities, vulnerabilities:Object.values(v).map(x=>({name:x.name,severity:x.severity,isDirect:x.isDirect,range:x.range,fixAvailable:x.fixAvailable,via:x.via.map(y=>typeof y==="string"?y:{name:y.name,title:y.title,url:y.url,range:y.range})}))},null,2))'
+      - name: Explain audited dependency paths
+        if: always()
+        run: |
+          for package in firebase @firebase/firestore @firebase/firestore-compat @firebase/rules-unit-testing @grpc/grpc-js firebase-tools @google-cloud/pubsub @opentelemetry/core archiver archiver-utils exegesis gaxios gcp-metadata glob google-gax minimatch readdir-glob rimraf superstatic uuid zip-stream; do
+            echo "::group::npm explain $package"
+            npm explain "$package" || true
+            echo "::endgroup::"
+          done
+      - name: Run Firestore rules tests
+        run: npm test
