@@ -530,22 +530,31 @@ $('logoutBtn').onclick=logout;$('accBtn').onclick=()=>showPage('account');$('log
 $('gAdv').onclick=()=>signIn('advertiser');$('gArt').onclick=()=>signIn('artist');
 
 /* تسجيل الحساب: إيميل واحد = حساب واحد، والدور بيتحدد مرة واحدة وما بيتغيّر من العميل */
+let authFlowStage='بدء تسجيل الدخول';
 async function register(u,role){
   const email=(u.email||'').trim().toLowerCase();
   if(!email||!u.emailVerified){await signOut(auth);toast('لازم حساب قوقل بإيميل موثّق.');return null}
   const cref=doc(db,'emails',email),ref=doc(db,'users',u.uid);
+  authFlowStage='قراءة سجل البريد وملف الحساب';
   const [cs,us]=await Promise.all([getDoc(cref),getDoc(ref)]);
   if(cs.exists()&&cs.data().uid!==u.uid){await signOut(auth);toast('هذا الإيميل مرتبط بحساب آخر في عاين. تواصل مع الإدارة لحل المشكلة.');return null}
   if(us.exists()){
+    const savedRole=us.data().role;
+    if(!['advertiser','artist'].includes(savedRole))throw new Error('INVALID_SAVED_ROLE');
+    if(savedRole!==role){
+      toast(savedRole==='artist'?'الحساب ده مسجّل مسبقاً كفنان، وما ممكن يتحول لمعلن من شاشة التسجيل.':'الحساب ده مسجّل مسبقاً كمعلن.');
+      await signOut(auth);
+      return null;
+    }
     if(!cs.exists()){
+      authFlowStage='إنشاء سجل البريد للحساب الموجود';
       const claimBatch=writeBatch(db);
       claimBatch.set(cref,{uid:u.uid,createdAt:serverTimestamp()});
       await claimBatch.commit();
     }
-    return us.data().role;
+    return savedRole;
   }
-  // Create the email claim and profile atomically: a failed profile write
-  // can no longer leave a reserved email behind.
+  authFlowStage='حفظ ملف المعلن/الفنان وسجل البريد';
   const batch=writeBatch(db);
   if(!cs.exists())batch.set(cref,{uid:u.uid,createdAt:serverTimestamp()});
   batch.set(ref,{name:u.displayName||'',email:u.email||'',photo:u.photoURL||'',role,createdAt:serverTimestamp()});
@@ -554,28 +563,26 @@ async function register(u,role){
 }
 async function signIn(role){
   if(!ok)return needSetup();
+  authFlowStage='فتح نافذة Google';
   try{
     closeLogin();
     const provider=new GoogleAuthProvider();
     provider.setCustomParameters({prompt:'select_account'});
-    // Start the popup immediately inside the user's click handler. This is
-    // Firebase's recommended redirect alternative for apps hosted off Firebase.
     const result=await signInWithPopup(auth,provider);
     if(!result||!result.user)throw new Error('Google sign-in completed without a Firebase user');
-    // Wait until Firebase finishes committing the popup session. Never create
-    // an app-only user state that disagrees with Firebase Auth.
+    authFlowStage='تثبيت جلسة Firebase';
     await auth.authStateReady();
     const signedUser=auth.currentUser;
     if(!signedUser||signedUser.uid!==result.user.uid)throw new Error('Firebase session is not ready after Google sign-in');
     const currentRole=await register(signedUser,role);
     if(!currentRole)return;
+    authFlowStage='تأكيد جلسة الحساب';
     if(!auth.currentUser||auth.currentUser.uid!==signedUser.uid)throw new Error('Firebase session changed during account registration');
     user=auth.currentUser;authReady=true;
     toast('أهلاً بيك '+(signedUser.displayName||'').split(' ')[0]+'.');
-    if(currentRole!==role)toast(currentRole==='advertiser'?'حسابك مسجّل كمعلن. للانضمام كفنان اطلب التحويل من صفحة "سجّل كفنان".':'حسابك مسجّل كفنان.');
     if(role==='artist')showPage('artistjoin');
   }catch(e){
-    dbg('googlePopupSignIn',e);
+    dbg('googlePopupSignIn:'+authFlowStage,e);
     const M={
       'auth/unauthorized-domain':'نطاق الموقع غير مسموح في إعدادات Firebase.',
       'auth/network-request-failed':'مشكلة في الاتصال بالإنترنت. حاول مرة أخرى.',
@@ -584,7 +591,8 @@ async function signIn(role){
       'auth/popup-closed-by-user':'أغلقت نافذة تسجيل الدخول قبل اكتمال العملية.',
       'auth/cancelled-popup-request':'هناك نافذة تسجيل دخول أخرى قيد الفتح. حاول مرة واحدة.'
     };
-    toast(M[e.code]||'تعذّر تسجيل الدخول ('+(e.code||'خطأ')+'). حاول مرة أخرى.');
+    const code=e.code||e.message||'UNKNOWN';
+    toast(M[e.code]||'فشل '+authFlowStage+' — '+String(code).slice(0,90)+'. أرسل لي نص الرسالة كما ظهر.');
   }
 }
 /* public data */
