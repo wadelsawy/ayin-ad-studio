@@ -5,7 +5,7 @@ import {
   assertFails,
   assertSucceeds
 } from '@firebase/rules-unit-testing';
-import { doc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 
 const projectId = 'demo-ayn-marketplace';
 let testEnv;
@@ -114,4 +114,38 @@ test('admin moderation permissions remain available', async () => {
   await assertSucceeds(updateDoc(doc(db, 'ads/ad-open'), { status: 'in_progress' }));
   await assertSucceeds(updateDoc(doc(db, 'topups/top-pending'), { status: 'done' }));
   await assertSucceeds(deleteDoc(doc(db, 'artistWorks/work-approved')));
+});
+
+test('a new account creates its email claim and profile atomically', async () => {
+  const db = testEnv.authenticatedContext('new-user', {
+    email: 'new@example.com',
+    email_verified: true
+  }).firestore();
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'emails/new@example.com'), {
+    uid: 'new-user', createdAt: serverTimestamp()
+  });
+  batch.set(doc(db, 'users/new-user'), {
+    name: 'New User', email: 'new@example.com', role: 'advertiser',
+    createdAt: serverTimestamp()
+  });
+  await assertSucceeds(batch.commit());
+});
+
+test('an email claim cannot be created for a different authenticated uid', async () => {
+  const db = testEnv.authenticatedContext('intruder', {
+    email: 'claimed@example.com',
+    email_verified: true
+  }).firestore();
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), 'emails/claimed@example.com'), {
+      uid: 'original-user', createdAt: new Date()
+    });
+  });
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'users/intruder'), {
+    name: 'Intruder', email: 'claimed@example.com', role: 'advertiser',
+    createdAt: serverTimestamp()
+  });
+  await assertFails(batch.commit());
 });
