@@ -533,7 +533,7 @@ modal.addEventListener('click',e=>{if(e.target.closest('[data-page-link]'))close
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLogin();$('warnModal').style.display='none'}});
 const logout=e=>{if(e)e.preventDefault();$('mobileLinks').classList.remove('open');if(ok)signOut(auth)};
 $('logoutBtn').onclick=logout;$('accBtn').onclick=()=>showPage('account');$('logoutM').onclick=logout;
-$('gAdv').onclick=()=>showPage('request');$('gArt').onclick=()=>signIn('artist');
+$('gAdv').onclick=()=>signIn('advertiser');$('gArt').onclick=()=>signIn('artist');
 
 /* تسجيل الحساب: إيميل واحد = حساب واحد، والدور بيتحدد مرة واحدة وما بيتغيّر من العميل */
 async function register(u,role){
