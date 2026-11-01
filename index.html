@@ -557,7 +557,7 @@ async function register(u,role){
   authFlowStage='حفظ ملف المعلن/الفنان وسجل البريد';
   const batch=writeBatch(db);
   if(!cs.exists())batch.set(cref,{uid:u.uid,createdAt:serverTimestamp()});
-  batch.set(ref,{name:u.displayName||'',email:u.email||'',photo:u.photoURL||'',role,createdAt:serverTimestamp()});
+  batch.set(ref,{name:u.displayName||'',email,photo:u.photoURL||'',role,createdAt:serverTimestamp()});
   await batch.commit();
   return role;
 }
