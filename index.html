@@ -487,7 +487,6 @@ const firebaseConfig={apiKey:"AIzaSyBIxmk6lu-xNJ1sOLAbCQipnvv5M_k1eXU",authDomai
 const APPCHECK_KEY=''; /* مفتاح reCAPTCHA v3 لحماية App Check: اتركه فارغاً الآن */
 
 
-window.__ready=1;
 const {$,toast,esc,showPage}=window.AY;
 const ok=!firebaseConfig.apiKey.startsWith('YOUR');
 let auth,db,user=null,myArtist=null,myAds=[],pkgs=[],unsubs=[],artistsList=[],packs=[],artistAds=[],myTopups=[],reqArtist=null,warnCb=null,profile=null,myReqs=[],authReady=false,dbWarned=false,ratingsList=[],aWorksPub=[],myWorks=[],portfolioItems=[],rateDraft={},ratingsStarted=false,ratingsLoaded=false;
@@ -521,6 +520,7 @@ const payNote=()=>site.accountNumber?'<br>حوّل عبر '+esc(site.bankName||'
 function applySite(){const f=$('waFab');if(site.whatsapp){f.href=waLink(site.whatsapp,'السلام عليكم، عندي استفسار عن عاين.');f.classList.add('on')}else f.classList.remove('on');renderAds();renderJoin();renderPkgs();renderArtists(artistsList);renderDash();renderTopup();const pw=$('payWa');if(site.whatsapp)pw.href=waLink(site.whatsapp,'السلام عليكم، عايز أطلب إعلان وأعرف طريقة الدفع.');pw.style.display=site.whatsapp?'inline-flex':'none'}
 const ST={new:'جديد',in_progress:'قيد التنفيذ',done:'مكتمل',cancelled:'ملغي'};
 const needSetup=()=>toast('أضف إعدادات Firebase في الملف أولاً.');
+$('gAdv').onclick=()=>signIn('advertiser');$('gArt').onclick=()=>signIn('artist');window.__authButtonsBound=1;
 if(ok){const app=initializeApp(firebaseConfig);if(APPCHECK_KEY)import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js').then(m=>m.initializeAppCheck(app,{provider:new m.ReCaptchaV3Provider(APPCHECK_KEY),isTokenAutoRefreshEnabled:true})).catch(()=>{});auth=getAuth(app);db=getFirestore(app)}
 
 /* modal + auth buttons */
@@ -533,8 +533,6 @@ modal.addEventListener('click',e=>{if(e.target.closest('[data-page-link]'))close
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLogin();$('warnModal').style.display='none'}});
 const logout=e=>{if(e)e.preventDefault();$('mobileLinks').classList.remove('open');if(ok)signOut(auth)};
 $('logoutBtn').onclick=logout;$('accBtn').onclick=()=>showPage('account');$('logoutM').onclick=logout;
-$('gAdv').onclick=()=>signIn('advertiser');$('gArt').onclick=()=>signIn('artist');
-
 /* تسجيل الحساب: إيميل واحد = حساب واحد، والدور بيتحدد مرة واحدة وما بيتغيّر من العميل */
 async function register(u,role){
   const email=(u.email||'').toLowerCase();
@@ -831,8 +829,9 @@ $('requestForm').onsubmit=async e=>{
   }catch(err){dbg('request',err);toast(err&&err.code==='permission-denied'?(reqArtist?'ما اتسمح بالطلب: الفنان ممكن ما بقى متاح (تغيّر رصيدو)، أو حسابك مو مسجّل كمعلن. جرّب فنان تاني أو أرسل من غير تحديد فنان. (permission-denied)':'ما اتسمح بالطلب: تأكد إن حسابك مسجّل كمعلن ونشط. (permission-denied)'):errMsg(err,'تعذّر إرسال الطلب'))}
 };
 applySite();renderAccount();
+window.__ready=1;
 </script>
-<script>document.addEventListener("error",function(e){var t=e.target;if(t&&t.tagName==="IMG"&&t.classList.contains("avatar")&&!t.dataset.f){t.dataset.f=1;t.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23FFC21A'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23130F2A'%3E%D8%B9%3C/text%3E%3C/svg%3E"}},true)</script>
+<script>document.addEventListener("error",function(e){var t=e.target;if(t&&t.tagName==="IMG"&&t.classList.contains("avatar")&&!t.dataset.f){t.dataset.f=1;t.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23FFC21A'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23130F2A'%3E%D8%B9%3C/text%3E%3C/svg%3E"}},true)document.addEventListener("click",function(e){var b=e.target.closest("#gAdv,#gArt");if(b&&!window.__authButtonsBound){e.preventDefault();if(window.AY)window.AY.toast("خدمة تسجيل الدخول لم تكتمل. حدّث الصفحة أو افتحها في Chrome وتأكد من الاتصال.");}},false)</script>
 <script>setTimeout(function(){if(!window.__ready){var d=document.createElement("div");d.setAttribute("role","alert");d.style.cssText="position:fixed;top:0;left:0;right:0;z-index:99;background:#FF5B3A;color:#130F2A;padding:12px 16px;text-align:center;font:600 14px Tahoma,sans-serif;border-bottom:2px solid #000";d.textContent="تعذّر تحميل خدمات الموقع (الدخول وقاعدة البيانات). تأكد من الإنترنت وحدّث الصفحة.";document.body.appendChild(d)}},7000)</script>
 </body>
 </html>
