@@ -527,7 +527,7 @@ if(ok){const app=initializeApp(firebaseConfig);if(APPCHECK_KEY)import('https://w
 const IAB=/FBAN|FBAV|FB_IAB|Instagram|Messenger|Line\//i.test(navigator.userAgent);
 const modal=$('loginModal'),openLogin=e=>{if(e)e.preventDefault();$('iabNote').style.display=IAB?'block':'none';modal.style.display='flex'},closeLogin=()=>modal.style.display='none';
 $('loginOpen').onclick=openLogin;$('loginOpenM').onclick=e=>{$('mobileLinks').classList.remove('open');openLogin(e)};
-$('loginClose').onclick=closeLogin;$('reqLogin').onclick=openLogin;
+$('loginClose').onclick=closeLogin;
 $('copyLink').onclick=async()=>{try{await navigator.clipboard.writeText(location.origin+location.pathname);toast('تم نسخ الرابط.')}catch(e){toast('انسخ الرابط من شريط العنوان.')}};
 modal.addEventListener('click',e=>{if(e.target.closest('[data-page-link]'))closeLogin()});modal.onclick=e=>{if(e.target===modal)closeLogin()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLogin();$('warnModal').style.display='none'}});
