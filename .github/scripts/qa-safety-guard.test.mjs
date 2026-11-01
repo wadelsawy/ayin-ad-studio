@@ -48,3 +48,12 @@ test('rejects malformed Firebase config JSON', () => {
   env.FIREBASE_CONFIG = '{bad json';
   assert.throws(() => validateQaEnvironment(env), /FIREBASE_CONFIG must be valid JSON/);
 });
+
+test('rejects a production Firebase domain even when projectId is demo', () => {
+  const env = safeEnv();
+  env.FIREBASE_CONFIG = JSON.stringify({
+    projectId: 'demo-ayn-marketplace',
+    authDomain: 'ayn-marketplace.firebaseapp.com'
+  });
+  assert.throws(() => validateQaEnvironment(env), /production project identifier/);
+});
