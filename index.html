@@ -470,7 +470,7 @@ body.role-artist .advOnly{display:none!important}
 </script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,GoogleAuthProvider,signInWithRedirect,getRedirectResult,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getAuth,GoogleAuthProvider,signInWithRedirect,getRedirectResult,updateCurrentUser,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,orderBy,limit,onSnapshot,serverTimestamp,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ===== ضع إعدادات مشروع Firebase هنا ===== */
@@ -515,6 +515,10 @@ if(ok){const app=initializeApp(firebaseConfig);if(APPCHECK_KEY)import('https://w
   // Complete Google sign-in after returning from the provider redirect.
   getRedirectResult(auth).then(async result=>{
     if(!result||!result.user)return;
+    // Explicitly attach the redirect-returned user to this Auth instance before
+    // profile reads; do not rely only on the redirect observer timing.
+    await updateCurrentUser(auth,result.user);
+    if(!auth.currentUser)throw new Error('Redirect user was returned but Firebase currentUser is still empty');
     const role=localStorage.getItem('ayin_pending_auth_role')||'advertiser';
     localStorage.removeItem('ayin_pending_auth_role');
     user=result.user;authReady=true;
