@@ -8,6 +8,7 @@ on:
       - "firebase.json"
       - "package.json"
       - ".github/workflows/firestore-rules.yml"
+      - ".github/scripts/qa-safety-guard.*"
   push:
     branches:
       - main
