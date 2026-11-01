@@ -482,7 +482,7 @@ const APPCHECK_KEY=''; /* مفتاح reCAPTCHA v3 لحماية App Check: اتر
 window.__ready=1;
 const {$,toast,esc,showPage}=window.AY;
 const ok=!firebaseConfig.apiKey.startsWith('YOUR');
-let auth,db,user=null,myArtist=null,myAds=[],pkgs=[],unsubs=[],artistsList=[],packs=[],artistAds=[],myTopups=[],reqArtist=null,warnCb=null,profile=null,myReqs=[],authReady=false,dbWarned=false,ratingsList=[],aWorksPub=[],myWorks=[],portfolioItems=[],rateDraft={};
+let auth,db,user=null,myArtist=null,myAds=[],pkgs=[],unsubs=[],artistsList=[],packs=[],artistAds=[],myTopups=[],reqArtist=null,warnCb=null,profile=null,myReqs=[],authReady=false,dbWarned=false,lastAuthState='لم يصل إشعار الجلسة بعد',ratingsList=[],aWorksPub=[],myWorks=[],portfolioItems=[],rateDraft={};
 const dbg=(ctx,e)=>console.error('[ayin]',ctx,(e&&e.code)||'',(e&&e.message)||'');
 function dbBanner(e){
   if(dbWarned||!e||e.code!=='permission-denied')return;dbWarned=true;
@@ -636,6 +636,7 @@ function renderAds(){
 }
 let authObserverInitialized=false;
 if(ok)onAuthStateChanged(auth,u=>{
+  lastAuthState=u?'وصل مستخدم مسجّل':'وصل إشعار بدون مستخدم';
   // Ignore a late initial signed-out callback if Google popup already returned
   // an authenticated user. Subsequent null events (real sign-out) are processed.
   if(!authObserverInitialized){authObserverInitialized=true;if(!u&&user)return;}
@@ -880,7 +881,14 @@ $('requestForm').onsubmit=async e=>{
   if(!authReady){toast('جاري التحقق من جلسة الدخول. انتظر لحظة ثم أعد المحاولة.');return}
   await auth.authStateReady();
   const activeUser=auth.currentUser||user;
-  if(!activeUser){toast('جلسة Google غير موجودة فعلياً. سجّل الدخول بحساب المعلن أولاً.');openLogin();return}
+  if(!activeUser){
+    const authUserState=auth.currentUser?'موجود':'غير موجود';
+    const appUserState=user?'موجود':'غير موجود';
+    $('requestResult').innerHTML='<div class="notice" role="status" style="display:block;text-align:right"><b>تشخيص جلسة الدخول</b><p>جلسة Firebase الحالية: <b>'+authUserState+'</b></p><p>جلسة الموقع الداخلية: <b>'+appUserState+'</b></p><p>جاهزية التحقق: <b>'+(authReady?'نعم':'لا')+'</b></p><p>آخر إشعار من Google: <b>'+lastAuthState+'</b></p><small>التشخيص لا يعرض بريدك أو رقم حسابك أو أي رمز سري.</small></div>';
+    $('requestResult').style.display='block';
+    toast('الجلسة غير متاحة وقت الإرسال. أرسل لي نتيجة التشخيص الظاهرة تحت النموذج.');
+    openLogin();return
+  }
   await activeUser.getIdToken();
   user=activeUser;
   try{
