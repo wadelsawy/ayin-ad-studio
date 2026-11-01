@@ -222,7 +222,7 @@ service cloud.firestore {
         && request.resource.data.ownerEmail == request.auth.token.email
         && (request.resource.data.ownerName is string && request.resource.data.ownerName.size() <= 100)
         && (request.resource.data.phone is string && request.resource.data.phone.size() <= 30)
-        && (request.resource.data.service is string && request.resource.data.service.size() <= 60)
+        && (request.resource.data['service'] is string && request.resource.data['service'].size() <= 60)
         && (request.resource.data.get('packageId', '') is string && request.resource.data.get('packageId', '').size() <= 60)
         && (request.resource.data.get('packageTitle', '') is string && request.resource.data.get('packageTitle', '').size() <= 100)
         && (request.resource.data.brief is string && request.resource.data.brief.size() <= 1000)
