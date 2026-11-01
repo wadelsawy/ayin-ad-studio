@@ -543,6 +543,7 @@ async function register(u,role){
     if(!['advertiser','artist'].includes(savedRole))throw new Error('INVALID_SAVED_ROLE');
     if(savedRole!==role){
       toast(savedRole==='artist'?'الحساب ده مسجّل مسبقاً كفنان، وما ممكن يتحول لمعلن من شاشة التسجيل.':'الحساب ده مسجّل مسبقاً كمعلن.');
+      await signOut(auth);
       return null;
     }
     if(!cs.exists()){
