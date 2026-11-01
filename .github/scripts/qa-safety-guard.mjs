@@ -1,4 +1,5 @@
-import { readFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
+import { resolve } from 'node:path';
 
 const ALLOWED_PROJECT_ID = 'demo-ayn-marketplace';
 const EXPECTED_FIRESTORE = '127.0.0.1:8080';
@@ -50,7 +51,7 @@ export function validateQaEnvironment(env = process.env) {
   };
 }
 
-if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
     const result = validateQaEnvironment();
     process.stdout.write(`QA environment accepted: ${JSON.stringify(result)}\\n`);
