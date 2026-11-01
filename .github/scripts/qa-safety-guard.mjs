@@ -32,8 +32,14 @@ export function validateQaEnvironment(env = process.env) {
     fail('Firebase config projectId must be demo-ayn-marketplace');
   }
 
-  const serializedConfig = JSON.stringify(config);
-  if (serializedConfig.includes('ayn-marketplace') && !serializedConfig.includes(ALLOWED_PROJECT_ID)) {
+  const strings = [];
+  const collectStrings = (value) => {
+    if (typeof value === 'string') strings.push(value);
+    else if (Array.isArray(value)) value.forEach(collectStrings);
+    else if (value && typeof value === 'object') Object.values(value).forEach(collectStrings);
+  };
+  collectStrings(config);
+  if (strings.some((value) => value.replaceAll(ALLOWED_PROJECT_ID, '').includes('ayn-marketplace'))) {
     fail('Firebase config contains a production project identifier');
   }
 
