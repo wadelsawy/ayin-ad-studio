@@ -524,7 +524,7 @@ $('loginClose').onclick=closeLogin;$('reqLogin').onclick=openLogin;
 $('copyLink').onclick=async()=>{try{await navigator.clipboard.writeText(location.origin+location.pathname);toast('تم نسخ الرابط.')}catch(e){toast('انسخ الرابط من شريط العنوان.')}};
 modal.addEventListener('click',e=>{if(e.target.closest('[data-page-link]'))closeLogin()});modal.onclick=e=>{if(e.target===modal)closeLogin()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLogin();$('warnModal').style.display='none'}});
-const logout=e=>{if(e)e.preventDefault();$('mobileLinks').classList.remove('open');if(ok)signOut(auth)};
+const logout=e=>{if(e)e.preventDefault();$('mobileLinks').classList.remove('open');if(ok){user=null;signOut(auth)}};
 $('logoutBtn').onclick=logout;$('accBtn').onclick=()=>showPage('account');$('logoutM').onclick=logout;
 $('gAdv').onclick=()=>signIn('advertiser');$('gArt').onclick=()=>signIn('artist');
 
@@ -649,9 +649,15 @@ function renderAds(){
 let authObserverInitialized=false;
 if(ok)onAuthStateChanged(auth,u=>{
   lastAuthState=u?'وصل مستخدم مسجّل':'وصل إشعار بدون مستخدم';
-  // Ignore a late initial signed-out callback if Google popup already returned
-  // an authenticated user. Subsequent null events (real sign-out) are processed.
-  if(!authObserverInitialized){authObserverInitialized=true;if(!u&&user)return;}
+  // A delayed/duplicate null observer event must not erase a user already
+  // established by the successful Google popup. Explicit logout clears user
+  // before calling signOut, so genuine in-app sign-out is still processed.
+  if(!authObserverInitialized)authObserverInitialized=true;
+  if(!u&&user){
+    authReady=true;
+    renderJoin();renderAds();renderDash();renderArtists(artistsList);renderTopup();renderAccount();
+    return;
+  }
   user=u;unsubs.forEach(f=>f());unsubs=[];myArtist=null;myAds=[];artistAds=[];myTopups=[];myWorks=[];profile=null;myReqs=[];authReady=true;document.body.classList.remove('art','role-artist','role-advertiser');
   document.body.classList.toggle('in',!!u);
   if(u){
