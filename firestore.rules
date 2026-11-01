@@ -19,7 +19,7 @@ service cloud.firestore {
       return exists(/databases/$(db)/documents/settings/site)
         ? get(/databases/$(db)/documents/settings/site).data.get('pointsPerAd', 5) : 5;
     }
-    function str(v, max) { return v is string && v.size() <= max; }
+    function str(v, maxLength) { return v is string && v.size() <= maxLength; }
 
     // ---------- Admins: readable only by the matching uid; never writable from a client ----------
     match /admins/{uid} {
