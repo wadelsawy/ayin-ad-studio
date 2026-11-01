@@ -29,10 +29,11 @@ jobs:
           java-version: "21"
       - name: Install test dependencies
         run: npm install
-      - name: Preview non-breaking dependency fixes
+      - name: Preview dependency fixes without changing the repository
         run: |
-          npm audit fix --dry-run --json > npm-audit-fix-preview.json || true
-          node -e 'const x=require("./npm-audit-fix-preview.json"); console.log(JSON.stringify({added:x.added,removed:x.removed,changed:x.changed,audit:x.audit?.metadata?.vulnerabilities,error:x.error},null,2))'
+          npm audit fix --dry-run > npm-audit-fix-preview.txt 2>&1 || true
+          echo "Dry-run preview (informational only; no dependency files are committed):"
+          sed -n '1,180p' npm-audit-fix-preview.txt
       - name: Report dependency vulnerability details
         run: |
           npm audit --json > npm-audit.json || true
