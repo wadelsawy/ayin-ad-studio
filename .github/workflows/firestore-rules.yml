@@ -29,6 +29,10 @@ jobs:
           java-version: "21"
       - name: Install test dependencies
         run: npm install
+      - name: Preview non-breaking dependency fixes
+        run: |
+          npm audit fix --dry-run --json > npm-audit-fix-preview.json || true
+          node -e 'const x=require("./npm-audit-fix-preview.json"); console.log(JSON.stringify({added:x.added,removed:x.removed,changed:x.changed,audit:x.audit?.metadata?.vulnerabilities,error:x.error},null,2))'
       - name: Report dependency vulnerability details
         run: |
           npm audit --json > npm-audit.json || true
