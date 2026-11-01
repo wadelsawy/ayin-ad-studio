@@ -535,6 +535,23 @@ let signInInProgress=false;
 async function register(u,role){
   const email=(u.email||'').trim().toLowerCase();
   if(!email||!u.emailVerified){await signOut(auth);toast('لازم حساب قوقل بإيميل موثّق.');return null}
+  // Confirm that the popup user is the same user held by Firebase Auth,
+  // and refresh the ID token before any account-document reads.
+  authFlowStage='التحقق من جلسة Firebase';
+  const liveUser=auth.currentUser;
+  if(!liveUser || liveUser.uid!==u.uid){
+    const mismatch=new Error('FIREBASE_USER_MISMATCH');
+    mismatch.code='auth/user-mismatch';
+    mismatch.authFlowStage=authFlowStage;
+    throw mismatch;
+  }
+  await liveUser.getIdToken(true);
+  if(!auth.currentUser || auth.currentUser.uid!==u.uid){
+    const mismatch=new Error('FIREBASE_USER_CHANGED');
+    mismatch.code='auth/user-mismatch';
+    mismatch.authFlowStage=authFlowStage;
+    throw mismatch;
+  }
   const cref=doc(db,'emails',email),ref=doc(db,'users',u.uid);
   authFlowStage='قراءة سجل البريد';
   let cs;
