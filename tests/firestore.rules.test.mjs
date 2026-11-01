@@ -149,3 +149,50 @@ test('an email claim cannot be created for a different authenticated uid', async
   });
   await assertFails(batch.commit());
 });
+
+const adPayload = (uid, ownerEmail = '') => ({
+  ownerUid: uid,
+  ownerName: 'Test Advertiser',
+  ownerEmail,
+  phone: '0912345678',
+  service: 'ريلز',
+  packageId: '',
+  packageTitle: '',
+  brief: 'طلب إعلان تجريبي',
+  artistUid: '',
+  artistName: '',
+  status: 'new',
+  createdAt: serverTimestamp()
+});
+
+test('an anonymous visitor can create an ad request without an email account', async () => {
+  const db = testEnv.authenticatedContext('guest', {
+    firebase: { sign_in_provider: 'anonymous' }
+  }).firestore();
+
+  await assertSucceeds(setDoc(doc(db, 'ads/guest_abcd'), adPayload('guest')));
+});
+
+test('an active advertiser can create an ad request linked to their account', async () => {
+  const db = testEnv.authenticatedContext('owner', {
+    email: 'owner@example.com',
+    email_verified: true
+  }).firestore();
+
+  await assertSucceeds(setDoc(
+    doc(db, 'ads/owner_abcd'),
+    adPayload('owner', 'owner@example.com')
+  ));
+});
+
+test('an artist cannot create an advertiser ad request', async () => {
+  const db = testEnv.authenticatedContext('artist', {
+    email: 'artist@example.com',
+    email_verified: true
+  }).firestore();
+
+  await assertFails(setDoc(
+    doc(db, 'ads/artist_abcd'),
+    adPayload('artist', 'artist@example.com')
+  ));
+});
