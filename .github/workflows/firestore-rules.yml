@@ -21,14 +21,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
       - name: Set up Java for the Firebase Emulator
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
       - name: Install test dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
       - name: Preview dependency fixes without changing the repository
         run: |
           npm audit fix --dry-run > npm-audit-fix-preview.txt 2>&1 || true
@@ -41,7 +41,7 @@ jobs:
       - name: Explain audited dependency paths
         if: always()
         run: |
-          for package in firebase @firebase/firestore @firebase/firestore-compat @firebase/rules-unit-testing @grpc/grpc-js firebase-tools @google-cloud/pubsub @opentelemetry/core archiver archiver-utils exegesis gaxios gcp-metadata glob google-gax minimatch readdir-glob rimraf superstatic uuid zip-stream; do
+          for package in firebase @firebase/firestore @firebase/firestore-compat @firebase/rules-unit-testing firebase-tools @google-cloud/pubsub @opentelemetry/core archiver archiver-utils exegesis gaxios gcp-metadata glob google-gax minimatch readdir-glob rimraf superstatic uuid zip-stream; do
             echo "::group::npm explain $package"
             npm explain "$package" || true
             echo "::endgroup::"
