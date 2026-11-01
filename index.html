@@ -531,6 +531,7 @@ $('gAdv').onclick=()=>signIn('advertiser');$('gArt').onclick=()=>signIn('artist'
 
 /* تسجيل الحساب: إيميل واحد = حساب واحد، والدور بيتحدد مرة واحدة وما بيتغيّر من العميل */
 let authFlowStage='بدء تسجيل الدخول';
+let signInInProgress=false;
 async function register(u,role){
   const email=(u.email||'').trim().toLowerCase();
   if(!email||!u.emailVerified){await signOut(auth);toast('لازم حساب قوقل بإيميل موثّق.');return null}
@@ -567,8 +568,9 @@ async function register(u,role){
 }
 async function signIn(role){
   if(!ok)return needSetup();
+  signInInProgress=true;
   try{
-    // Match the exact popup sequence from the previously working version.
+    // Preserve the established Google popup + local persistence flow.
     await setPersistence(auth,browserLocalPersistence);
     const result=await signInWithPopup(auth,new GoogleAuthProvider());
     closeLogin();
@@ -592,6 +594,13 @@ async function signIn(role){
     const code=e.code||e.message||'UNKNOWN';
     if(e.authFlowStage)toast('تعذّر '+e.authFlowStage+' ('+String(code).slice(0,70)+').');
     else toast(M[e.code]||'فشل تسجيل الدخول ('+String(code).slice(0,90)+').');
+  }finally{
+    // Ignore a late initial "null" observer event while Google popup sign-in
+    // is resolving, then reconcile the app with Firebase's actual final state.
+    signInInProgress=false;
+    const liveUser=auth.currentUser;
+    if(liveUser){user=liveUser;authReady=true}
+    else{user=null;profile=null;authReady=true;document.body.classList.remove('in','art','role-artist','role-advertiser');renderJoin();renderAccount();renderAds();renderDash()}
   }
 }
 /* public data */
@@ -660,6 +669,9 @@ function renderAds(){
 }
 let authObserverInitialized=false;
 if(ok)onAuthStateChanged(auth,u=>{
+  // Firebase can deliver its initial null state while a popup sign-in is
+  // still resolving. Do not erase the in-flight authenticated app session.
+  if(!u&&signInInProgress&&!auth.currentUser)return;
   lastAuthState=u?'وصل مستخدم مسجّل':'وصل إشعار بدون مستخدم';
   // Firebase Auth is the source of truth. Always reconcile the app session
   // with the observer, including null, so stale local users cannot survive.
