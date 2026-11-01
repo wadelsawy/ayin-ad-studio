@@ -19,8 +19,6 @@ service cloud.firestore {
       return exists(/databases/$(db)/documents/settings/site)
         ? get(/databases/$(db)/documents/settings/site).data.get('pointsPerAd', 5) : 5;
     }
-    function isShortText(v, maxLength) { return v is string && v.size() <= maxLength; }
-
     // ---------- Admins: readable only by the matching uid; never writable from a client ----------
     match /admins/{uid} {
       allow read: if signedIn() && request.auth.uid == uid;
@@ -49,16 +47,16 @@ service cloud.firestore {
         && request.resource.data.role in ['advertiser', 'artist']
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.createdAt == request.time
-        && isShortText(request.resource.data.name, 100)
-        && isShortText(request.resource.data.get('photo', ''), 500)
-        && isShortText(request.resource.data.get('phone', ''), 30)
+        && (request.resource.data.name is string && request.resource.data.name.size() <= 100)
+        && (request.resource.data.get('photo', '') is string && request.resource.data.get('photo', '').size() <= 500)
+        && (request.resource.data.get('phone', '') is string && request.resource.data.get('phone', '').size() <= 30)
         && exists(/databases/$(db)/documents/emails/$(emailKey()))
         && get(/databases/$(db)/documents/emails/$(emailKey())).data.uid == uid;
       allow update: if isAdmin() || (signedIn() && request.auth.uid == uid && isActive()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'photo', 'phone'])
-        && isShortText(request.resource.data.name, 100)
-        && isShortText(request.resource.data.get('photo', ''), 500)
-        && isShortText(request.resource.data.get('phone', ''), 30));
+        && (request.resource.data.name is string && request.resource.data.name.size() <= 100)
+        && (request.resource.data.get('photo', '') is string && request.resource.data.get('photo', '').size() <= 500)
+        && (request.resource.data.get('phone', '') is string && request.resource.data.get('phone', '').size() <= 30));
       allow delete: if isAdmin();
     }
 
@@ -85,22 +83,22 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['uid', 'name', 'photo', 'platform', 'pageUrl', 'followers', 'bio', 'status', 'createdAt'])
         && request.resource.data.status == 'pending'
         && request.resource.data.uid == uid
-        && isShortText(request.resource.data.name, 100)
-        && isShortText(request.resource.data.photo, 500)
-        && isShortText(request.resource.data.platform, 30)
-        && isShortText(request.resource.data.pageUrl, 300)
+        && (request.resource.data.name is string && request.resource.data.name.size() <= 100)
+        && (request.resource.data.photo is string && request.resource.data.photo.size() <= 500)
+        && (request.resource.data.platform is string && request.resource.data.platform.size() <= 30)
+        && (request.resource.data.pageUrl is string && request.resource.data.pageUrl.size() <= 300)
         && request.resource.data.pageUrl.matches('https?://.+')
         && request.resource.data.followers is number
         && request.resource.data.followers >= 0
-        && isShortText(request.resource.data.bio, 400)
+        && (request.resource.data.bio is string && request.resource.data.bio.size() <= 400)
         && request.resource.data.createdAt == request.time;
       allow update: if isAdmin() || (signedIn() && request.auth.uid == uid && isActive()
         && resource.data.status in ['pending', 'approved']
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bio', 'pageUrl', 'platform', 'specialties'])
-        && isShortText(request.resource.data.bio, 400)
-        && isShortText(request.resource.data.get('specialties', ''), 120)
-        && isShortText(request.resource.data.platform, 30)
-        && isShortText(request.resource.data.pageUrl, 300)
+        && (request.resource.data.bio is string && request.resource.data.bio.size() <= 400)
+        && (request.resource.data.get('specialties', '') is string && request.resource.data.get('specialties', '').size() <= 120)
+        && (request.resource.data.platform is string && request.resource.data.platform.size() <= 30)
+        && (request.resource.data.pageUrl is string && request.resource.data.pageUrl.size() <= 300)
         && request.resource.data.pageUrl.matches('https?://.+'));
       allow delete: if isAdmin();
     }
@@ -112,7 +110,7 @@ service cloud.firestore {
       allow list: if isAdmin();
       allow create, update: if signedIn() && request.auth.uid == uid && isActive() && myRole() == 'artist'
         && request.resource.data.keys().hasOnly(['wa'])
-        && isShortText(request.resource.data.wa, 20);
+        && (request.resource.data.wa is string && request.resource.data.wa.size() <= 20);
       allow delete: if isAdmin();
     }
 
@@ -150,12 +148,12 @@ service cloud.firestore {
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.status == 'pending'
         && request.resource.data.type in ['image', 'poster', 'video']
-        && isShortText(request.resource.data.ownerName, 100)
-        && isShortText(request.resource.data.title, 80)
+        && (request.resource.data.ownerName is string && request.resource.data.ownerName.size() <= 100)
+        && (request.resource.data.title is string && request.resource.data.title.size() <= 80)
         && request.resource.data.title.size() > 0
-        && isShortText(request.resource.data.get('desc', ''), 140)
-        && isShortText(request.resource.data.get('image', ''), 700000)
-        && isShortText(request.resource.data.get('url', ''), 300)
+        && (request.resource.data.get('desc', '') is string && request.resource.data.get('desc', '').size() <= 140)
+        && (request.resource.data.get('image', '') is string && request.resource.data.get('image', '').size() <= 700000)
+        && (request.resource.data.get('url', '') is string && request.resource.data.get('url', '').size() <= 300)
         && (request.resource.data.type == 'video'
             ? request.resource.data.get('url', '').matches('https?://.+')
             : request.resource.data.get('image', '').size() > 0)
@@ -175,7 +173,7 @@ service cloud.firestore {
         && request.resource.data.stars is int
         && request.resource.data.stars >= 1
         && request.resource.data.stars <= 5
-        && isShortText(request.resource.data.get('comment', ''), 300)
+        && (request.resource.data.get('comment', '') is string && request.resource.data.get('comment', '').size() <= 300)
         && exists(/databases/$(db)/documents/ads/$(rid))
         && get(/databases/$(db)/documents/ads/$(rid)).data.ownerUid == request.auth.uid
         && get(/databases/$(db)/documents/ads/$(rid)).data.status == 'done'
@@ -195,8 +193,8 @@ service cloud.firestore {
         && request.resource.data.status == 'pending'
         && exists(/databases/$(db)/documents/artists/$(request.auth.uid))
         && get(/databases/$(db)/documents/artists/$(request.auth.uid)).data.status == 'approved'
-        && isShortText(request.resource.data.name, 100)
-        && isShortText(request.resource.data.packId, 60)
+        && (request.resource.data.name is string && request.resource.data.name.size() <= 100)
+        && (request.resource.data.packId is string && request.resource.data.packId.size() <= 60)
         && exists(/databases/$(db)/documents/pointPacks/$(request.resource.data.packId))
         && request.resource.data.points == get(/databases/$(db)/documents/pointPacks/$(request.resource.data.packId)).data.points
         && request.resource.data.price == get(/databases/$(db)/documents/pointPacks/$(request.resource.data.packId)).data.price
@@ -222,15 +220,15 @@ service cloud.firestore {
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.status == 'new'
         && request.resource.data.ownerEmail == request.auth.token.email
-        && isShortText(request.resource.data.ownerName, 100)
-        && isShortText(request.resource.data.phone, 30)
-        && isShortText(request.resource.data.service, 60)
-        && isShortText(request.resource.data.get('packageId', ''), 60)
-        && isShortText(request.resource.data.get('packageTitle', ''), 100)
-        && isShortText(request.resource.data.brief, 1000)
+        && (request.resource.data.ownerName is string && request.resource.data.ownerName.size() <= 100)
+        && (request.resource.data.phone is string && request.resource.data.phone.size() <= 30)
+        && (request.resource.data.service is string && request.resource.data.service.size() <= 60)
+        && (request.resource.data.get('packageId', '') is string && request.resource.data.get('packageId', '').size() <= 60)
+        && (request.resource.data.get('packageTitle', '') is string && request.resource.data.get('packageTitle', '').size() <= 100)
+        && (request.resource.data.brief is string && request.resource.data.brief.size() <= 1000)
         && request.resource.data.brief.size() > 0
-        && isShortText(request.resource.data.artistUid, 60)
-        && isShortText(request.resource.data.get('artistName', ''), 100)
+        && (request.resource.data.artistUid is string && request.resource.data.artistUid.size() <= 60)
+        && (request.resource.data.get('artistName', '') is string && request.resource.data.get('artistName', '').size() <= 100)
         && (request.resource.data.artistUid == '' || (
              get(/databases/$(db)/documents/artists/$(request.resource.data.artistUid)).data.status == 'approved'
           && get(/databases/$(db)/documents/artists/$(request.resource.data.artistUid)).data.get('points', 0) >= cost()))
