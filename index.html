@@ -552,7 +552,12 @@ async function signIn(role){
   if(!ok)return needSetup();
   try{
     const r=await signInWithPopup(auth,new GoogleAuthProvider());closeLogin();
+    // signInWithPopup returns the authenticated Firebase user before the auth-state
+    // observer is guaranteed to finish its first callback. Keep that user immediately
+    // so a fast request submission cannot see a false signed-out state.
+    user=r.user;authReady=true;
     const cur=await register(r.user,role);if(!cur)return;
+    user=r.user;
     toast('أهلاً بيك '+(r.user.displayName||'').split(' ')[0]+'.');
     if(cur!==role)toast(cur==='advertiser'?'حسابك مسجّل كمعلن. للانضمام كفنان اطلب التحويل من صفحة "سجّل كفنان".':'حسابك مسجّل كفنان.');
     if(role==='artist')showPage('artistjoin');
