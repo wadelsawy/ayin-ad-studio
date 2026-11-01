@@ -835,10 +835,17 @@ renderWorks();
 
 /* request form */
 $('requestForm').onsubmit=async e=>{
-  e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;bt.disabled=true;setTimeout(()=>bt.disabled=false,4000);
+  e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;bt.disabled=true;
+  try{
   if(!ok)return needSetup();
   if(!authReady){toast('استنى لحظة، بنتحقق من جلستك…');return}
   if(!user){toast('سجّل الدخول بحساب قوقل أولاً.');openLogin();return}
+  if(!profile){
+    try{
+      const freshProfile=await getDoc(doc(db,'users',user.uid));
+      profile=freshProfile.exists()?freshProfile.data():null;
+    }catch(err){dbg('profileBeforeRequest',err);toast(errMsg(err,'تعذّر التحقق من الحساب'));return}
+  }
   if(!profile){toast('أكمل تسجيل حسابك أولاً (دخول كمعلن).');openLogin();return}
   if(profile.role!=='advertiser'){toast('حسابك مسجّل كفنان، وما بتقدر ترسل طلبات إعلان منو. اطلب من الإدارة تحويل نوع الحساب.');return}
   const p=pkgs.find(x=>x.id===$('pkgSelect').value);
@@ -850,6 +857,7 @@ $('requestForm').onsubmit=async e=>{
     const ref={id:adId};await setDoc(doc(db,'ads',adId),{ownerUid:user.uid,ownerName:$('clientName').value.trim(),ownerEmail:user.email||'',phone:$('clientPhone').value.trim(),service:$('serviceType').value,packageId:p?p.id:'',packageTitle:p?p.title:'',brief:$('clientBrief').value.trim(),artistUid:reqArtist?reqArtist.id:'',artistName:reqArtist?reqArtist.name:'',status:'new',createdAt:serverTimestamp()});
     const code=adCode(ref.id);const ra=reqArtist;const raWa=ra?await getWa(ra):'';$('requestResult').innerHTML='وصل طلبك رقم <b>'+code+'</b>. تقدر تتابعو من "طلباتي".'+payNote()+(raWa?'<br><a class="btn smallbtn" style="margin-top:10px" target="_blank" rel="noopener" href="'+esc(waLink(raWa,'السلام عليكم، أنا '+nm+'. أرسلت لك طلب إعلان عبر عاين رقم '+code+'.'))+'">تواصل مع الفنان مباشرة</a>':'')+(site.whatsapp?'<br><a class="btn primary smallbtn" target="_blank" rel="noopener" href="'+esc(waLink(site.whatsapp,'السلام عليكم، أنا '+nm+'. طلبي رقم '+code+' ('+sv+'). عايز أعرف بيانات الدفع وأرسل إشعار التحويل.'))+'">تواصل واتساب لإتمام الدفع</a>':'');$('requestResult').style.display='block';e.target.reset();toast('تم إرسال الطلب.');clearReqArtist();
   }catch(err){dbg('request',err);toast(err&&err.code==='permission-denied'?(reqArtist?'ما اتسمح بالطلب: الفنان ممكن ما بقى متاح (تغيّر رصيدو)، أو حسابك مو مسجّل كمعلن. جرّب فنان تاني أو أرسل من غير تحديد فنان. (permission-denied)':'ما اتسمح بالطلب: تأكد إن حسابك مسجّل كمعلن ونشط. (permission-denied)'):errMsg(err,'تعذّر إرسال الطلب'))}
+  }finally{bt.disabled=false}
 };
 applySite();renderAccount();
 </script>
