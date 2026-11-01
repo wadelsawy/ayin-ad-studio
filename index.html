@@ -470,7 +470,7 @@ body.role-artist .advOnly{display:none!important}
 </script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getAuth,GoogleAuthProvider,signInWithRedirect,getRedirectResult,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,orderBy,limit,onSnapshot,serverTimestamp,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ===== ضع إعدادات مشروع Firebase هنا ===== */
@@ -511,7 +511,21 @@ const payNote=()=>site.accountNumber?'<br>حوّل عبر '+esc(site.bankName||'
 function applySite(){const f=$('waFab');if(site.whatsapp){f.href=waLink(site.whatsapp,'السلام عليكم، عندي استفسار عن عاين.');f.classList.add('on')}else f.classList.remove('on');renderAds();renderJoin();renderPkgs();renderArtists(artistsList);renderDash();renderTopup();const pw=$('payWa');if(site.whatsapp)pw.href=waLink(site.whatsapp,'السلام عليكم، عايز أطلب إعلان وأعرف طريقة الدفع.');pw.style.display=site.whatsapp?'inline-flex':'none'}
 const ST={new:'جديد',in_progress:'قيد التنفيذ',done:'مكتمل',cancelled:'ملغي',rejected:'مرفوض'};
 const needSetup=()=>toast('أضف إعدادات Firebase في الملف أولاً.');
-if(ok){const app=initializeApp(firebaseConfig);if(APPCHECK_KEY)import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js').then(m=>m.initializeAppCheck(app,{provider:new m.ReCaptchaV3Provider(APPCHECK_KEY),isTokenAutoRefreshEnabled:true})).catch(()=>{});auth=getAuth(app);db=getFirestore(app)}
+if(ok){const app=initializeApp(firebaseConfig);if(APPCHECK_KEY)import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js').then(m=>m.initializeAppCheck(app,{provider:new m.ReCaptchaV3Provider(APPCHECK_KEY),isTokenAutoRefreshEnabled:true})).catch(()=>{});auth=getAuth(app);db=getFirestore(app);
+  // Complete Google sign-in after returning from the provider redirect.
+  getRedirectResult(auth).then(async result=>{
+    if(!result||!result.user)return;
+    const role=localStorage.getItem('ayin_pending_auth_role')||'advertiser';
+    localStorage.removeItem('ayin_pending_auth_role');
+    user=result.user;authReady=true;
+    const cur=await register(result.user,role);
+    if(!cur)return;
+    user=result.user;
+    toast('أهلاً بيك '+(result.user.displayName||'').split(' ')[0]+'.');
+    if(cur!==role)toast(cur==='advertiser'?'حسابك مسجّل كمعلن. للانضمام كفنان اطلب التحويل من صفحة "سجّل كفنان".':'حسابك مسجّل كفنان.');
+    if(role==='artist')showPage('artistjoin');
+  }).catch(e=>{dbg('googleRedirectResult',e);toast('تعذّر إكمال تسجيل الدخول ('+(e.code||'خطأ')+'). حاول تسجيل الدخول مرة أخرى.')});
+}
 
 /* modal + auth buttons */
 const IAB=/FBAN|FBAV|FB_IAB|Instagram|Messenger|Line\//i.test(navigator.userAgent);
@@ -551,25 +565,18 @@ async function register(u,role){
 async function signIn(role){
   if(!ok)return needSetup();
   try{
-    // Persist Google Auth locally so the same browser can reuse the session.
+    // Redirect flow is more reliable than popup in Android Chrome/custom tabs.
     await setPersistence(auth,browserLocalPersistence);
-    const r=await signInWithPopup(auth,new GoogleAuthProvider());closeLogin();
-    // signInWithPopup returns the authenticated Firebase user before the auth-state
-    // observer is guaranteed to finish its first callback. Keep that user immediately
-    // so a fast request submission cannot see a false signed-out state.
-    user=r.user;authReady=true;
-    const cur=await register(r.user,role);if(!cur)return;
-    user=r.user;
-    toast('أهلاً بيك '+(r.user.displayName||'').split(' ')[0]+'.');
-    if(cur!==role)toast(cur==='advertiser'?'حسابك مسجّل كمعلن. للانضمام كفنان اطلب التحويل من صفحة "سجّل كفنان".':'حسابك مسجّل كفنان.');
-    if(role==='artist')showPage('artistjoin');
+    localStorage.setItem('ayin_pending_auth_role',role);
+    closeLogin();
+    await signInWithRedirect(auth,new GoogleAuthProvider());
   }catch(e){
-    dbg('signin',e);
-    const M={'auth/popup-blocked':'المتصفح منع نافذة الدخول. اسمح بالنوافذ المنبثقة وجرّب تاني.','auth/unauthorized-domain':'هذا النطاق غير مسموح في إعدادات Firebase.','auth/network-request-failed':'مشكلة في الاتصال بالإنترنت.','auth/user-disabled':'هذا الحساب موقوف. تواصل مع الإدارة.','auth/account-exists-with-different-credential':'هذا الإيميل مسجّل بطريقة دخول تانية. ادخل بالطريقة الأصلية بدل إنشاء حساب جديد.','permission-denied':'تعذّر إنشاء الحساب (permission-denied). لو أنت صاحب الموقع انشر آخر firestore.rules.'};
-    if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request')toast(M[e.code]||'تعذّر تسجيل الدخول ('+(e.code||'خطأ')+').');
+    localStorage.removeItem('ayin_pending_auth_role');
+    dbg('signinRedirect',e);
+    const M={'auth/unauthorized-domain':'هذا النطاق غير مسموح في إعدادات Firebase.','auth/network-request-failed':'مشكلة في الاتصال بالإنترنت.','auth/user-disabled':'هذا الحساب موقوف. تواصل مع الإدارة.'};
+    toast(M[e.code]||'تعذّر بدء تسجيل الدخول ('+(e.code||'خطأ')+').');
   }
 }
-
 /* public data */
 function renderPkgs(){
   $('pkgGrid').innerHTML=pkgs.length?pkgs.map(p=>'<article class="pkg'+(p.featured?' featured':'')+'">'+(p.featured?'<span class="flag">الأكثر طلباً</span>':'')+'<h3>'+esc(p.title)+'</h3><div class="price">'+fmt(p.price)+' <small>'+esc(p.currency||'')+'</small></div><ul>'+(p.features||[]).map(f=>'<li>'+esc(f)+'</li>').join('')+'</ul><button class="btn'+(p.featured?'':' primary')+'" data-pkg="'+esc(p.id)+'">اطلب الباقة</button>'+(site.whatsapp?'<a class="textLink" style="margin-top:14px" target="_blank" rel="noopener" href="'+esc(waLink(site.whatsapp,'السلام عليكم، عايز باقة '+p.title+' ('+fmt(p.price)+' '+(p.currency||'')+') وأعرف طريقة الدفع.'))+'">أو اطلبها عبر واتساب</a>':'')+'</article>').join(''):'<p style="color:var(--muted)">الباقات قريباً. تابعنا.</p>';
