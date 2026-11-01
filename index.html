@@ -470,7 +470,7 @@ body.role-artist .advOnly{display:none!important}
 </script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,orderBy,limit,onSnapshot,serverTimestamp,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ===== ضع إعدادات مشروع Firebase هنا ===== */
@@ -563,23 +563,24 @@ async function register(u,role){
 }
 async function signIn(role){
   if(!ok)return needSetup();
-  authFlowStage='فتح نافذة Google';
+  authFlowStage='تهيئة حفظ جلسة Google';
   try{
-    closeLogin();
+    // Restore the previously working persistent-auth setup used by the stable version.
+    await setPersistence(auth,browserLocalPersistence);
+    authFlowStage='فتح نافذة Google';
     const provider=new GoogleAuthProvider();
     provider.setCustomParameters({prompt:'select_account'});
     const result=await signInWithPopup(auth,provider);
     if(!result||!result.user)throw new Error('Google sign-in completed without a Firebase user');
-    authFlowStage='تثبيت جلسة Firebase';
-    await auth.authStateReady();
-    const signedUser=auth.currentUser;
-    if(!signedUser||signedUser.uid!==result.user.uid)throw new Error('Firebase session is not ready after Google sign-in');
-    const currentRole=await register(signedUser,role);
+    // Use the authenticated user returned by the popup immediately; the observer
+    // may run slightly later and must not leave the app in a false signed-out state.
+    user=result.user;authReady=true;
+    authFlowStage='التحقق من دور الحساب وحفظه';
+    const currentRole=await register(result.user,role);
     if(!currentRole)return;
-    authFlowStage='تأكيد جلسة الحساب';
-    if(!auth.currentUser||auth.currentUser.uid!==signedUser.uid)throw new Error('Firebase session changed during account registration');
+    if(!auth.currentUser||auth.currentUser.uid!==result.user.uid)throw new Error('Firebase session changed during account registration');
     user=auth.currentUser;authReady=true;
-    toast('أهلاً بيك '+(signedUser.displayName||'').split(' ')[0]+'.');
+    toast('أهلاً بيك '+(result.user.displayName||'').split(' ')[0]+'.');
     if(role==='artist')showPage('artistjoin');
   }catch(e){
     dbg('googlePopupSignIn:'+authFlowStage,e);
@@ -587,12 +588,12 @@ async function signIn(role){
       'auth/unauthorized-domain':'نطاق الموقع غير مسموح في إعدادات Firebase.',
       'auth/network-request-failed':'مشكلة في الاتصال بالإنترنت. حاول مرة أخرى.',
       'auth/user-disabled':'هذا الحساب موقوف. تواصل مع الإدارة.',
-      'auth/popup-blocked':'المتصفح منع نافذة تسجيل الدخول. افتح الموقع في Chrome مباشرة واسمح بالنوافذ المنبثقة.',
-      'auth/popup-closed-by-user':'أغلقت نافذة تسجيل الدخول قبل اكتمال العملية.',
+      'auth/popup-blocked':'المتصفح منع نافذة تسجيل الدخول. اسمح بالنوافذ المنبثقة.',
+      'auth/popup-closed-by-user':'نافذة Google اتقفلت قبل اكتمال الدخول.',
       'auth/cancelled-popup-request':'هناك نافذة تسجيل دخول أخرى قيد الفتح. حاول مرة واحدة.'
     };
     const code=e.code||e.message||'UNKNOWN';
-    toast(M[e.code]||'فشل '+authFlowStage+' — '+String(code).slice(0,90)+'. أرسل لي نص الرسالة كما ظهر.');
+    toast(M[e.code]||'فشل '+authFlowStage+' — '+String(code).slice(0,90)+'.');
   }
 }
 /* public data */
