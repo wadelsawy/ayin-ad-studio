@@ -484,11 +484,12 @@ const {$,toast,esc,showPage}=window.AY;
 const ok=!firebaseConfig.apiKey.startsWith('YOUR');
 let auth,db,user=null,myArtist=null,myAds=[],pkgs=[],unsubs=[],artistsList=[],packs=[],artistAds=[],myTopups=[],reqArtist=null,warnCb=null,profile=null,myReqs=[],authReady=false,dbWarned=false,lastAuthState='لم يصل إشعار الجلسة بعد',ratingsList=[],aWorksPub=[],myWorks=[],portfolioItems=[],rateDraft={};
 const dbg=(ctx,e)=>console.error('[ayin]',ctx,(e&&e.code)||'',(e&&e.message)||'');
-function dbBanner(e){
+function dbBanner(e,source='غير محدد'){
   if(dbWarned||!e||e.code!=='permission-denied')return;dbWarned=true;
   const d=document.createElement('div');d.setAttribute('role','alert');
   d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99;background:#FF5B3A;color:#130F2A;padding:10px 14px;text-align:center;font:600 13px Tahoma,sans-serif;border-bottom:2px solid #000;cursor:pointer';
-  d.textContent='تعذّر قراءة بعض البيانات (permission-denied). لو أنت صاحب الموقع: انشر آخر firestore.rules في Firebase. (اضغط للإخفاء)';
+  const firebaseUser=auth&&auth.currentUser;
+  d.textContent='تعذّرت قراءة بيانات ('+source+'). Firebase user: '+(firebaseUser?'موجود':'غير موجود')+'؛ جلسة الموقع: '+(user?'موجودة':'غير موجودة')+'؛ Auth: '+lastAuthState+'؛ اضغط للإخفاء.';
   d.onclick=()=>d.remove();document.body.appendChild(d);
 }
 function errMsg(e,what){
@@ -560,12 +561,16 @@ async function signIn(role){
     // Start the popup immediately inside the user's click handler. This is
     // Firebase's recommended redirect alternative for apps hosted off Firebase.
     const result=await signInWithPopup(auth,provider);
-    const signedUser=result&&result.user;
-    if(!signedUser)throw new Error('Google sign-in completed without a Firebase user');
-    user=signedUser;authReady=true;
+    if(!result||!result.user)throw new Error('Google sign-in completed without a Firebase user');
+    // Wait until Firebase finishes committing the popup session. Never create
+    // an app-only user state that disagrees with Firebase Auth.
+    await auth.authStateReady();
+    const signedUser=auth.currentUser;
+    if(!signedUser||signedUser.uid!==result.user.uid)throw new Error('Firebase session is not ready after Google sign-in');
     const currentRole=await register(signedUser,role);
     if(!currentRole)return;
-    user=signedUser;
+    if(!auth.currentUser||auth.currentUser.uid!==signedUser.uid)throw new Error('Firebase session changed during account registration');
+    user=auth.currentUser;authReady=true;
     toast('أهلاً بيك '+(signedUser.displayName||'').split(' ')[0]+'.');
     if(currentRole!==role)toast(currentRole==='advertiser'?'حسابك مسجّل كمعلن. للانضمام كفنان اطلب التحويل من صفحة "سجّل كفنان".':'حسابك مسجّل كفنان.');
     if(role==='artist')showPage('artistjoin');
@@ -604,7 +609,7 @@ if(ok){
   onSnapshot(query(collection(db,'packages'),orderBy('order')),s=>{pkgs=s.docs.map(d=>({id:d.id,...d.data()}));renderPkgs()},e=>{dbg('packages',e);$('pkgGrid').innerHTML='<p style="color:var(--muted)">تعذّر تحميل الباقات.</p>'});
   onSnapshot(query(collection(db,'pointPacks'),orderBy('order')),s=>{packs=s.docs.map(d=>({id:d.id,...d.data()}));renderTopup()},e=>dbg('pointPacks',e));
   onSnapshot(doc(db,'settings','site'),s=>{site=Object.assign({whatsapp:'249912415902',pointsPerAd:5,freePoints:5},s.exists()?s.data():{});applySite()},e=>dbg('settings',e));
-  onSnapshot(query(collection(db,'artists'),where('status','==','approved')),s=>renderArtists(s.docs.map(d=>({id:d.id,...d.data()}))),e=>{dbg('artists',e);dbBanner(e)});
+  onSnapshot(query(collection(db,'artists'),where('status','==','approved')),s=>renderArtists(s.docs.map(d=>({id:d.id,...d.data()}))),e=>{dbg('artists',e);dbBanner(e,'artists')});
 }else{renderPkgs();renderArtists([])}
 
 /* account-bound views */
@@ -649,26 +654,20 @@ function renderAds(){
 let authObserverInitialized=false;
 if(ok)onAuthStateChanged(auth,u=>{
   lastAuthState=u?'وصل مستخدم مسجّل':'وصل إشعار بدون مستخدم';
-  // A delayed/duplicate null observer event must not erase a user already
-  // established by the successful Google popup. Explicit logout clears user
-  // before calling signOut, so genuine in-app sign-out is still processed.
+  // Firebase Auth is the source of truth. Always reconcile the app session
+  // with the observer, including null, so stale local users cannot survive.
   if(!authObserverInitialized)authObserverInitialized=true;
-  if(!u&&user){
-    authReady=true;
-    renderJoin();renderAds();renderDash();renderArtists(artistsList);renderTopup();renderAccount();
-    return;
-  }
   user=u;unsubs.forEach(f=>f());unsubs=[];myArtist=null;myAds=[];artistAds=[];myTopups=[];myWorks=[];profile=null;myReqs=[];authReady=true;document.body.classList.remove('art','role-artist','role-advertiser');
   document.body.classList.toggle('in',!!u);
   if(u){
     $('userName').textContent=(u.displayName||'').split(' ')[0];$('userPic').src=u.photoURL||'';
     if(!$('clientName').value)$('clientName').value=u.displayName||'';
     unsubs.push(onSnapshot(doc(db,'artists',u.uid),s=>{myArtist=s.exists()?s.data():null;document.body.classList.toggle('art',!!myArtist);renderJoin();renderDash();renderArtists(artistsList);renderTopup()},e=>dbg('myArtist',e)));
-    unsubs.push(onSnapshot(query(collection(db,'ads'),where('ownerUid','==',u.uid)),s=>{myAds=s.docs.map(d=>({id:d.id,...d.data()}));renderAds()},e=>{dbg('ads',e);dbBanner(e)}));
+    unsubs.push(onSnapshot(query(collection(db,'ads'),where('ownerUid','==',u.uid)),s=>{myAds=s.docs.map(d=>({id:d.id,...d.data()}));renderAds()},e=>{dbg('ads',e);dbBanner(e,'ads')}));
     unsubs.push(onSnapshot(query(collection(db,'ads'),where('artistUid','==',u.uid)),s=>{artistAds=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},e=>dbg('artistAds',e)));
     unsubs.push(onSnapshot(query(collection(db,'topups'),where('uid','==',u.uid)),s=>{myTopups=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},e=>dbg('topups',e)));
     unsubs.push(onSnapshot(query(collection(db,'artistWorks'),where('ownerUid','==',u.uid)),s=>{myWorks=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},e=>dbg('myWorks',e)));
-    unsubs.push(onSnapshot(doc(db,'users',u.uid),s=>{profile=s.exists()?s.data():null;document.body.classList.toggle('role-artist',!!profile&&profile.role==='artist');document.body.classList.toggle('role-advertiser',!!profile&&profile.role==='advertiser');if(profile&&profile.status==='deactivated'){toast('تم إيقاف حسابك. تواصل مع الإدارة لإعادة التفعيل.');signOut(auth);return}renderJoin();renderAccount();renderAds()},e=>{dbg('profile',e);dbBanner(e)}));
+    unsubs.push(onSnapshot(doc(db,'users',u.uid),s=>{profile=s.exists()?s.data():null;document.body.classList.toggle('role-artist',!!profile&&profile.role==='artist');document.body.classList.toggle('role-advertiser',!!profile&&profile.role==='advertiser');if(profile&&profile.status==='deactivated'){toast('تم إيقاف حسابك. تواصل مع الإدارة لإعادة التفعيل.');signOut(auth);return}renderJoin();renderAccount();renderAds()},e=>{dbg('profile',e);dbBanner(e,'users/profile')}));
     unsubs.push(onSnapshot(query(collection(db,'accountRequests'),where('uid','==',u.uid)),s=>{myReqs=s.docs.map(d=>({id:d.id,...d.data()}));renderJoin();renderAccount()},e=>dbg('accountRequests',e)));
   }
   renderJoin();renderAds();renderDash();renderArtists(artistsList);renderTopup();renderAccount();
