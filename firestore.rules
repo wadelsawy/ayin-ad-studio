@@ -50,8 +50,8 @@ service cloud.firestore {
         && (request.resource.data.name is string && request.resource.data.name.size() <= 100)
         && (request.resource.data.get('photo', '') is string && request.resource.data.get('photo', '').size() <= 500)
         && (request.resource.data.get('phone', '') is string && request.resource.data.get('phone', '').size() <= 30)
-        && exists(/databases/$(db)/documents/emails/$(emailKey()))
-        && get(/databases/$(db)/documents/emails/$(emailKey())).data.uid == uid;
+        && existsAfter(/databases/$(db)/documents/emails/$(emailKey()))
+        && getAfter(/databases/$(db)/documents/emails/$(emailKey())).data.uid == uid;
       allow update: if isAdmin() || (signedIn() && request.auth.uid == uid && isActive()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'photo', 'phone'])
         && (request.resource.data.name is string && request.resource.data.name.size() <= 100)
