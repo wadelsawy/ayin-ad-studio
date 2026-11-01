@@ -632,7 +632,11 @@ function renderAds(){
   const a=myAds.filter(x=>!(x.hiddenBy&&x.hiddenBy[user.uid])).sort((x,y)=>(y.createdAt?.seconds||0)-(x.createdAt?.seconds||0));
   l.innerHTML=a.length?a.map(x=>'<div class="order"><b>'+esc(x.service)+(x.packageTitle?' · '+esc(x.packageTitle):'')+'</b> <span class="st '+esc(x.status)+'">'+(ST[x.status]||'')+'</span><br><small>'+(x.createdAt?new Date(x.createdAt.seconds*1000).toLocaleDateString('ar-EG'):'')+(x.price?' — السعر: '+fmt(x.price):'')+'</small><p>'+esc(x.brief)+'</p>'+rateBox(x)+(x.status==='rejected'?'<button class="btn smallbtn" type="button" data-delrejected="'+esc(x.id)+'" style="margin-top:8px;background:#ffd4cc">حذف الطلب المرفوض</button>':x.status==='done'?'<button class="btn smallbtn" type="button" data-delorder="'+esc(x.id)+'" style="margin-top:8px">إزالة من طلباتي</button>':'')+'</div>').join(''):'<p class="empty">لسه ما في طلبات. أرسل طلبك من صفحة "اطلب إعلان".</p>';
 }
+let authObserverInitialized=false;
 if(ok)onAuthStateChanged(auth,u=>{
+  // Ignore a late initial signed-out callback if Google popup already returned
+  // an authenticated user. Subsequent null events (real sign-out) are processed.
+  if(!authObserverInitialized){authObserverInitialized=true;if(!u&&user)return;}
   user=u;unsubs.forEach(f=>f());unsubs=[];myArtist=null;myAds=[];artistAds=[];myTopups=[];myWorks=[];profile=null;myReqs=[];authReady=true;document.body.classList.remove('art','role-artist','role-advertiser');
   document.body.classList.toggle('in',!!u);
   if(u){
