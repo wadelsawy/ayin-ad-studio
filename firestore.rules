@@ -45,7 +45,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['name', 'email', 'photo', 'role', 'phone', 'createdAt'])
         && request.resource.data.keys().hasAll(['name', 'email', 'role', 'createdAt'])
         && request.resource.data.role in ['advertiser', 'artist']
-        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.email == emailKey()
         && request.resource.data.createdAt == request.time
         && (request.resource.data.name is string && request.resource.data.name.size() <= 100)
         && (request.resource.data.get('photo', '') is string && request.resource.data.get('photo', '').size() <= 500)
