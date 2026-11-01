@@ -540,101 +540,37 @@ $('loginClose').onclick=closeLogin;$('reqLogin').onclick=openLogin;
 $('copyLink').onclick=async()=>{try{await navigator.clipboard.writeText(location.origin+location.pathname);toast('تم نسخ الرابط.')}catch(e){toast('انسخ الرابط من شريط العنوان.')}};
 modal.addEventListener('click',e=>{if(e.target.closest('[data-page-link]'))closeLogin()});modal.onclick=e=>{if(e.target===modal)closeLogin()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLogin();$('warnModal').style.display='none'}});
-const logout=e=>{if(e)e.preventDefault();$('mobileLinks').classList.remove('open');if(ok){user=null;signOut(auth)}};
+const logout=e=>{if(e)e.preventDefault();$('mobileLinks').classList.remove('open');if(ok)signOut(auth)};
 $('logoutBtn').onclick=logout;$('accBtn').onclick=()=>showPage('account');$('logoutM').onclick=logout;
 $('gAdv').onclick=()=>signIn('advertiser');$('gArt').onclick=()=>signIn('artist');
 
 /* تسجيل الحساب: إيميل واحد = حساب واحد، والدور بيتحدد مرة واحدة وما بيتغيّر من العميل */
-let authFlowStage='بدء تسجيل الدخول';
-let signInInProgress=false;
 async function register(u,role){
-  const email=(u.email||'').trim().toLowerCase();
+  const email=(u.email||'').toLowerCase();
   if(!email||!u.emailVerified){await signOut(auth);toast('لازم حساب قوقل بإيميل موثّق.');return null}
-  // Confirm that the popup user is the same user held by Firebase Auth,
-  // and refresh the ID token before any account-document reads.
-  authFlowStage='التحقق من جلسة Firebase';
-  const liveUser=auth.currentUser;
-  if(!liveUser || liveUser.uid!==u.uid){
-    const mismatch=new Error('FIREBASE_USER_MISMATCH');
-    mismatch.code='auth/user-mismatch';
-    mismatch.authFlowStage=authFlowStage;
-    throw mismatch;
-  }
-  await liveUser.getIdToken(true);
-  if(!auth.currentUser || auth.currentUser.uid!==u.uid){
-    const mismatch=new Error('FIREBASE_USER_CHANGED');
-    mismatch.code='auth/user-mismatch';
-    mismatch.authFlowStage=authFlowStage;
-    throw mismatch;
-  }
-  const cref=doc(db,'emails',email),ref=doc(db,'users',u.uid);
-  authFlowStage='قراءة سجل البريد';
-  let cs;
-  try{cs=await getDoc(cref)}catch(e){e.authFlowStage=authFlowStage;throw e}
-  authFlowStage='قراءة ملف الحساب';
-  let us;
-  try{us=await getDoc(ref)}catch(e){e.authFlowStage=authFlowStage;throw e}
+  const cref=doc(db,'emails',email),cs=await getDoc(cref);
   if(cs.exists()&&cs.data().uid!==u.uid){await signOut(auth);toast('هذا الإيميل مرتبط بحساب آخر في عاين. تواصل مع الإدارة لحل المشكلة.');return null}
-  if(us.exists()){
-    const savedRole=us.data().role;
-    if(!['advertiser','artist'].includes(savedRole))throw new Error('INVALID_SAVED_ROLE');
-    if(savedRole!==role){
-      toast(savedRole==='artist'?'الحساب ده مسجّل مسبقاً كفنان، وما ممكن يتحول لمعلن من شاشة التسجيل.':'الحساب ده مسجّل مسبقاً كمعلن.');
-      await signOut(auth);
-      return null;
-    }
-    if(!cs.exists()){
-      authFlowStage='إنشاء سجل البريد للحساب الموجود';
-      const claimBatch=writeBatch(db);
-      claimBatch.set(cref,{uid:u.uid,createdAt:serverTimestamp()});
-      await claimBatch.commit();
-    }
-    return savedRole;
-  }
-  authFlowStage='حفظ ملف المعلن/الفنان وسجل البريد';
-  const batch=writeBatch(db);
-  if(!cs.exists())batch.set(cref,{uid:u.uid,createdAt:serverTimestamp()});
-  batch.set(ref,{name:u.displayName||'',email,photo:u.photoURL||'',role,createdAt:serverTimestamp()});
-  await batch.commit();
+  const ref=doc(db,'users',u.uid),us=await getDoc(ref);
+  if(!cs.exists())await setDoc(cref,{uid:u.uid,createdAt:serverTimestamp()});
+  if(us.exists())return us.data().role;
+  await setDoc(ref,{name:u.displayName||'',email:u.email||'',photo:u.photoURL||'',role,createdAt:serverTimestamp()});
   return role;
 }
 async function signIn(role){
   if(!ok)return needSetup();
-  signInInProgress=true;
   try{
-    // Preserve the established Google popup + local persistence flow.
-    await setPersistence(auth,browserLocalPersistence);
-    const result=await signInWithPopup(auth,new GoogleAuthProvider());
-    closeLogin();
-    if(!result||!result.user)throw new Error('Google sign-in completed without a Firebase user');
-    user=result.user;authReady=true;
-    const currentRole=await register(result.user,role);
-    if(!currentRole)return;
-    user=result.user;
-    toast('أهلاً بيك '+(result.user.displayName||'').split(' ')[0]+'.');
-    showPage(role==='artist'?'artistjoin':'account');
+    const r=await signInWithPopup(auth,new GoogleAuthProvider());closeLogin();
+    const cur=await register(r.user,role);if(!cur)return;
+    toast('أهلاً بيك '+(r.user.displayName||'').split(' ')[0]+'.');
+    if(cur!==role)toast(cur==='advertiser'?'حسابك مسجّل كمعلن. للانضمام كفنان اطلب التحويل من صفحة "سجّل كفنان".':'حسابك مسجّل كفنان.');
+    if(role==='artist')showPage('artistjoin');
   }catch(e){
     dbg('signin',e);
-    const M={
-      'auth/unauthorized-domain':'نطاق الموقع غير مسموح في إعدادات Firebase.',
-      'auth/network-request-failed':'مشكلة في الاتصال بالإنترنت. حاول مرة أخرى.',
-      'auth/user-disabled':'هذا الحساب موقوف. تواصل مع الإدارة.',
-      'auth/popup-blocked':'المتصفح منع نافذة تسجيل الدخول. اسمح بالنوافذ المنبثقة.',
-      'auth/popup-closed-by-user':'نافذة Google اتقفلت قبل اكتمال الدخول.',
-      'auth/cancelled-popup-request':'هناك نافذة تسجيل دخول أخرى قيد الفتح. حاول مرة واحدة.'
-    };
-    const code=e.code||e.message||'UNKNOWN';
-    if(e.authFlowStage)toast('تعذّر '+e.authFlowStage+' ('+String(code).slice(0,70)+').');
-    else toast(M[e.code]||'فشل تسجيل الدخول ('+String(code).slice(0,90)+').');
-  }finally{
-    // Ignore a late initial "null" observer event while Google popup sign-in
-    // is resolving, then reconcile the app with Firebase's actual final state.
-    signInInProgress=false;
-    const liveUser=auth.currentUser;
-    if(liveUser){user=liveUser;authReady=true}
-    else{user=null;profile=null;authReady=true;document.body.classList.remove('in','art','role-artist','role-advertiser');renderJoin();renderAccount();renderAds();renderDash()}
+    const M={'auth/popup-blocked':'المتصفح منع نافذة الدخول. اسمح بالنوافذ المنبثقة وجرّب تاني.','auth/unauthorized-domain':'هذا النطاق غير مسموح في إعدادات Firebase.','auth/network-request-failed':'مشكلة في الاتصال بالإنترنت.','auth/user-disabled':'هذا الحساب موقوف. تواصل مع الإدارة.','auth/account-exists-with-different-credential':'هذا الإيميل مسجّل بطريقة دخول تانية. ادخل بالطريقة الأصلية بدل إنشاء حساب جديد.','permission-denied':'تعذّر إنشاء الحساب (permission-denied). لو أنت صاحب الموقع انشر آخر firestore.rules.'};
+    if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request')toast(M[e.code]||'تعذّر تسجيل الدخول ('+(e.code||'خطأ')+').');
   }
 }
+
 /* public data */
 function renderPkgs(){
   $('pkgGrid').innerHTML=pkgs.length?pkgs.map(p=>'<article class="pkg'+(p.featured?' featured':'')+'">'+(p.featured?'<span class="flag">الأكثر طلباً</span>':'')+'<h3>'+esc(p.title)+'</h3><div class="price">'+fmt(p.price)+' <small>'+esc(p.currency||'')+'</small></div><ul>'+(p.features||[]).map(f=>'<li>'+esc(f)+'</li>').join('')+'</ul><button class="btn'+(p.featured?'':' primary')+'" data-pkg="'+esc(p.id)+'">اطلب الباقة</button>'+(site.whatsapp?'<a class="textLink" style="margin-top:14px" target="_blank" rel="noopener" href="'+esc(waLink(site.whatsapp,'السلام عليكم، عايز باقة '+p.title+' ('+fmt(p.price)+' '+(p.currency||'')+') وأعرف طريقة الدفع.'))+'">أو اطلبها عبر واتساب</a>':'')+'</article>').join(''):'<p style="color:var(--muted)">الباقات قريباً. تابعنا.</p>';
@@ -701,37 +637,17 @@ function renderAds(){
 }
 let authObserverInitialized=false;
 if(ok)onAuthStateChanged(auth,u=>{
-  // Firebase can deliver its initial null state while a popup sign-in is
-  // still resolving. Do not erase the in-flight authenticated app session.
-  if(!u&&signInInProgress&&!auth.currentUser)return;
-  lastAuthState=u?'وصل مستخدم مسجّل':'وصل إشعار بدون مستخدم';
-  // Firebase Auth is the source of truth. Always reconcile the app session
-  // with the observer, including null, so stale local users cannot survive.
-  if(!authObserverInitialized)authObserverInitialized=true;
   user=u;unsubs.forEach(f=>f());unsubs=[];myArtist=null;myAds=[];artistAds=[];myTopups=[];myWorks=[];profile=null;myReqs=[];authReady=true;document.body.classList.remove('art','role-artist','role-advertiser');
   document.body.classList.toggle('in',!!u);
   if(u){
     $('userName').textContent=(u.displayName||'').split(' ')[0];$('userPic').src=u.photoURL||'';
     if(!$('clientName').value)$('clientName').value=u.displayName||'';
-    unsubs.push(onSnapshot(doc(db,'artists',u.uid),s=>{myArtist=s.exists()?s.data():null;document.body.classList.toggle('art',!!myArtist);renderJoin();renderDash();renderArtists(artistsList);renderTopup()},e=>dbg('myArtist',e)));
-    // Attach the advertiser-orders listener only after Firebase confirms
-    // the same live user and has produced a fresh ID token for Firestore.
-    (async()=>{
-      try{
-        await u.getIdToken(true);
-        if(!auth.currentUser || auth.currentUser.uid!==u.uid || user?.uid!==u.uid)return;
-        const stop=onSnapshot(query(collection(db,'ads'),where('ownerUid','==',u.uid)),s=>{
-          if(!auth.currentUser || auth.currentUser.uid!==u.uid)return;
-          myAds=s.docs.map(d=>({id:d.id,...d.data()}));renderAds();
-        },e=>{dbg('ads',e);dbBanner(e,'ads')});
-        if(auth.currentUser&&auth.currentUser.uid===u.uid)unsubs.push(stop);
-        else stop();
-      }catch(e){dbg('ads-auth-ready',e);if(e.code==='permission-denied')dbBanner(e,'ads-auth')}
-    })();
-    unsubs.push(onSnapshot(query(collection(db,'ads'),where('artistUid','==',u.uid)),s=>{artistAds=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},e=>dbg('artistAds',e)));
-    unsubs.push(onSnapshot(query(collection(db,'topups'),where('uid','==',u.uid)),s=>{myTopups=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},e=>dbg('topups',e)));
+    unsubs.push(onSnapshot(doc(db,'artists',u.uid),s=>{myArtist=s.exists()?s.data():null;document.body.classList.toggle('art',!!myArtist);renderJoin();renderDash();renderArtists(artistsList);renderTopup()},()=>{}));
+    unsubs.push(onSnapshot(query(collection(db,'ads'),where('ownerUid','==',u.uid)),s=>{myAds=s.docs.map(d=>({id:d.id,...d.data()}));renderAds()},e=>{dbg('ads',e);dbBanner(e)}));
+    unsubs.push(onSnapshot(query(collection(db,'ads'),where('artistUid','==',u.uid)),s=>{artistAds=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},()=>{}));
+    unsubs.push(onSnapshot(query(collection(db,'topups'),where('uid','==',u.uid)),s=>{myTopups=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},()=>{}));
     unsubs.push(onSnapshot(query(collection(db,'artistWorks'),where('ownerUid','==',u.uid)),s=>{myWorks=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},e=>dbg('myWorks',e)));
-    unsubs.push(onSnapshot(doc(db,'users',u.uid),s=>{profile=s.exists()?s.data():null;document.body.classList.toggle('role-artist',!!profile&&profile.role==='artist');document.body.classList.toggle('role-advertiser',!!profile&&profile.role==='advertiser');if(profile&&profile.status==='deactivated'){toast('تم إيقاف حسابك. تواصل مع الإدارة لإعادة التفعيل.');signOut(auth);return}renderJoin();renderAccount();renderAds()},e=>{dbg('profile',e);dbBanner(e,'users/profile')}));
+    unsubs.push(onSnapshot(doc(db,'users',u.uid),s=>{profile=s.exists()?s.data():null;document.body.classList.toggle('role-artist',!!profile&&profile.role==='artist');document.body.classList.toggle('role-advertiser',!!profile&&profile.role==='advertiser');if(profile&&profile.status==='deactivated'){toast('تم إيقاف حسابك. تواصل مع الإدارة لإعادة التفعيل.');signOut(auth);return}renderJoin();renderAccount();renderAds()},e=>{dbg('profile',e);dbBanner(e)}));
     unsubs.push(onSnapshot(query(collection(db,'accountRequests'),where('uid','==',u.uid)),s=>{myReqs=s.docs.map(d=>({id:d.id,...d.data()}));renderJoin();renderAccount()},e=>dbg('accountRequests',e)));
   }
   renderJoin();renderAds();renderDash();renderArtists(artistsList);renderTopup();renderAccount();
