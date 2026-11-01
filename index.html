@@ -487,9 +487,24 @@ const dbg=(ctx,e)=>console.error('[ayin]',ctx,(e&&e.code)||'',(e&&e.message)||''
 function dbBanner(e,source='غير محدد'){
   if(dbWarned||!e||e.code!=='permission-denied')return;dbWarned=true;
   const d=document.createElement('div');d.setAttribute('role','alert');
-  d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99;background:#FF5B3A;color:#130F2A;padding:10px 14px;text-align:center;font:600 13px Tahoma,sans-serif;border-bottom:2px solid #000;cursor:pointer';
+  d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99;background:#FF5B3A;color:#130F2A;padding:10px 14px;text-align:right;font:600 13px/1.8 Tahoma,sans-serif;border-bottom:2px solid #000;cursor:pointer;max-height:45vh;overflow:auto';
   const firebaseUser=auth&&auth.currentUser;
-  d.textContent='تعذّرت قراءة بيانات ('+source+'). Firebase user: '+(firebaseUser?'موجود':'غير موجود')+'؛ جلسة الموقع: '+(user?'موجودة':'غير موجودة')+'؛ Auth: '+lastAuthState+'؛ اضغط للإخفاء.';
+  const project=(db&&db.app&&db.app.options&&db.app.options.projectId)||'غير معروف';
+  const authProject=(auth&&auth.app&&auth.app.options&&auth.app.options.projectId)||'غير معروف';
+  const sameUser=!!(firebaseUser&&user&&firebaseUser.uid===user.uid);
+  const details=[
+    'تعذّرت قراءة بيانات ('+source+').',
+    'رمز الخطأ: '+(e.code||'غير معروف'),
+    'رسالة Firebase: '+(e.message||'لا توجد رسالة إضافية'),
+    'مشروع Firestore: '+project,
+    'مشروع Auth: '+authProject,
+    'Firebase user: '+(firebaseUser?'موجود':'غير موجود'),
+    'جلسة الموقع: '+(user?'موجودة':'غير موجودة'),
+    'تطابق جلسة Firebase مع الموقع: '+(sameUser?'نعم':firebaseUser&&user?'لا':'غير قابل للتحقق'),
+    'آخر إشعار Auth: '+lastAuthState,
+    'اضغط لإخفاء التشخيص.'
+  ];
+  d.textContent=details.join(' | ');
   d.onclick=()=>d.remove();document.body.appendChild(d);
 }
 function errMsg(e,what){
