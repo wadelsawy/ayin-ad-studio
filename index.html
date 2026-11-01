@@ -164,7 +164,7 @@ main .page-view.active{display:block;animation:pageIn .35s ease both}
 .lbBody{width:min(920px,100%);max-height:78vh;display:grid;place-items:center}.lbBody img{max-width:100%;max-height:78vh;border:3px solid #000;border-radius:14px}.lbBody iframe,.lbBody video{width:100%;aspect-ratio:16/9;border:3px solid #000;border-radius:14px;background:#000}
 .lbCap{color:#fff;text-align:center;max-width:70ch}
 .legalBox{max-width:760px}.legalBox h3{font:400 1.5rem/1.3 var(--display);margin:28px 0 6px}.legalBox p,.legalBox li{color:#3b3760}
-.artistOnly{display:none!important}body.art .artistOnly{display:revert!important}
+.artistOnly{display:none!important}body.art .artistOnly{display:revert!important}body.role-artist .artistOnly{display:revert!important}
 .pts{display:inline-block;padding:4px 14px;border:2px solid #000;border-radius:99px;background:var(--saffron);color:var(--ink);font-weight:600;margin-bottom:6px}.pts.big{font-size:1.3rem;padding:8px 20px}.pts.low{background:#ffd4cc}
 .badge.off{background:#ddd}.acts2{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.joinBox .acts2{justify-content:flex-start}
 .btn:disabled{opacity:.65;cursor:not-allowed;box-shadow:none;transform:none}.btn.is-processing{background:#64748b!important;color:#fff!important;position:relative}.btn.is-processing:before{content:"";width:14px;height:14px;border:2px solid #ffffff66;border-top-color:#fff;border-radius:50%;animation:ayinSpin .7s linear infinite}.btn.is-success{background:#2563eb!important;color:#fff!important;border-color:#14213d!important}.btn.is-success:disabled{opacity:1}.st.rejected{background:#ffd4cc;color:#8b1e1e}.action-card{margin-top:16px;padding:18px;border:2px solid #1d1a33;border-radius:16px;background:#fff;color:#1d1a33;display:grid;gap:12px}.action-card-head{display:flex;align-items:center;gap:12px}.action-check{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:#2563eb;color:#fff;font-size:1.35rem;font-weight:700;flex:none}.action-card p{margin:3px 0;color:#5d5a7e}.action-details{display:grid;grid-template-columns:1fr 1fr;gap:10px}.action-details div{padding:10px;border-radius:10px;background:#f1f5f9}.action-details small{display:block;color:#64748b}.action-details b{display:block;margin-top:3px}.wa-step{padding:14px;border-radius:12px;background:#eaf8ef;border:1px solid #b7e4c7}.wa-step .btn{background:#16a34a!important;color:#fff!important;box-shadow:none;border-color:#166534}.wa-step .btn:hover{background:#15803d!important;box-shadow:none}.wa-step .btn:before{content:"↗"}@keyframes ayinSpin{to{transform:rotate(360deg)}}
@@ -216,7 +216,7 @@ body.role-artist .advOnly{display:none!important}
     </div>
   </div>
   <nav class="mobileLinks wrap" id="mobileLinks">
-    <a href="#home" data-page-link="home">الرئيسية</a><a href="#services" data-page-link="services">خدماتنا</a><a href="#packages" data-page-link="packages">الباقات</a><a href="#artists" data-page-link="artists">الفنانون</a><a href="#ideas" data-page-link="ideas">مولّد الأفكار</a><a href="#portfolio" data-page-link="portfolio">معرض الأعمال</a><a class="advOnly" href="#request" data-page-link="request">اطلب إعلان</a><a class="authOnly advertiserOnly" href="#track" data-page-link="track">متابعة طلباتي</a><a class="artistOnly" href="#artistjoin" data-page-link="artistjoin">حسابي كفنان</a><a class="guestOnly" href="#" id="loginOpenM">دخول / تسجيل</a><a class="authOnly" href="#account" data-page-link="account">حسابي</a><a class="authOnly" href="#" id="logoutM">تسجيل الخروج</a>
+    <a href="#home" data-page-link="home">الرئيسية</a><a href="#services" data-page-link="services">خدماتنا</a><a class="advOnly" href="#packages" data-page-link="packages">الباقات</a><a href="#artists" data-page-link="artists">الفنانون</a><a href="#ideas" data-page-link="ideas">مولّد الأفكار</a><a href="#portfolio" data-page-link="portfolio">معرض الأعمال</a><a class="advOnly" href="#request" data-page-link="request">اطلب إعلان</a><a class="authOnly advertiserOnly" href="#track" data-page-link="track">متابعة طلباتي</a><a class="artistOnly" href="#artistjoin" data-page-link="artistjoin">حسابي كفنان</a><a class="guestOnly" href="#" id="loginOpenM">دخول / تسجيل</a><a class="authOnly" href="#account" data-page-link="account">حسابي</a><a class="authOnly" href="#" id="logoutM">تسجيل الخروج</a>
   </nav>
 </header>
 
@@ -407,7 +407,7 @@ body.role-artist .advOnly{display:none!important}
 <footer class="footer"><div class="wrap">
   <div class="footerInner">
     <div><a class="brand" href="#home" data-page-link="home"><span class="logo">ع</span><span>عاين<small>AD STUDIO</small></span></a><p style="max-width:34ch;margin:14px 0 0">استوديو إعلانات كرتونية بروح سودانية. الإعلان البخلّيك تعاين مرتين.</p></div>
-    <div><h4>الصفحات</h4><ul><li><a href="#services" data-page-link="services">خدماتنا</a></li><li><a href="#packages" data-page-link="packages">الباقات</a></li><li><a href="#artists" data-page-link="artists">الفنانون</a></li><li><a href="#legal" data-page-link="legal">الشروط والخصوصية</a></li><li><a href="#ideas" data-page-link="ideas">مولّد الأفكار</a></li><li><a href="#portfolio" data-page-link="portfolio">معرض الأعمال</a></li><li><a class="advOnly" href="#request" data-page-link="request">اطلب إعلان</a></li></ul></div>
+    <div><h4>الصفحات</h4><ul><li><a href="#services" data-page-link="services">خدماتنا</a></li><li><a class="advOnly" href="#packages" data-page-link="packages">الباقات</a></li><li><a href="#artists" data-page-link="artists">الفنانون</a></li><li><a href="#legal" data-page-link="legal">الشروط والخصوصية</a></li><li><a href="#ideas" data-page-link="ideas">مولّد الأفكار</a></li><li><a href="#portfolio" data-page-link="portfolio">معرض الأعمال</a></li><li><a class="advOnly" href="#request" data-page-link="request">اطلب إعلان</a></li></ul></div>
     <div><h4>تواصل</h4><ul><li><a href="https://www.facebook.com/profile.php?id=61594511431507&mibextid=ZbWKwL" target="_blank" rel="noopener">فيسبوك ↗</a></li><li><a href="https://www.facebook.com/wadelsawy?mibextid=ZbWKwL" target="_blank" rel="noopener">ود الصاوي ↗</a></li></ul></div>
   </div>
   <div class="copy">© <span id="year"></span> عاين AD Studio. جميع الحقوق محفوظة.</div>
@@ -436,6 +436,8 @@ body.role-artist .advOnly{display:none!important}
   const validPages=['home','services','packages','artists','artistjoin','legal','topup','account','ideas','portfolio','request','track'];
   function showPage(page,updateHash=true){
     if(!validPages.includes(page))page='home';
+    if(page==='packages'&&document.body.classList.contains('role-artist'))page='artistjoin';
+    if(page==='topup'&&!document.body.classList.contains('role-artist'))page='home';
     const T={home:'الإعلان البخلّيك تعاين مرتين',services:'خدماتنا',packages:'الباقات',artists:'الفنانون',artistjoin:'سجّل كفنان',legal:'الشروط والخصوصية',topup:'غذي رصيدك',account:'حسابي',ideas:'مولّد الأفكار',portfolio:'معرض الأعمال',request:'اطلب إعلان',track:'طلباتي'};
     document.title=page==='home'?'عاين AD Studio | '+T.home:T[page]+' | عاين AD Studio';
     document.querySelectorAll('main .page-view').forEach(el=>el.classList.toggle('active',el.id===page));
