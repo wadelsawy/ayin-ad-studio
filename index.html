@@ -904,18 +904,19 @@ $('requestForm').onsubmit=async e=>{
   if(!ok)return needSetup();
   if(!authReady){toast('جاري التحقق من جلسة الدخول. انتظر لحظة ثم أعد المحاولة.');return}
   await auth.authStateReady();
-  const activeUser=auth.currentUser||user;
+  // Never fall back to the page's cached user object: only Firebase Auth's
+  // live session can authorize Firestore operations.
+  const activeUser=auth.currentUser;
   if(!activeUser){
-    const authUserState=auth.currentUser?'موجود':'غير موجود';
-    const appUserState=user?'موجود':'غير موجود';
-    $('requestResult').innerHTML='<div class="notice" role="status" style="display:block;text-align:right"><b>تشخيص جلسة الدخول</b><p>جلسة Firebase الحالية: <b>'+authUserState+'</b></p><p>جلسة الموقع الداخلية: <b>'+appUserState+'</b></p><p>جاهزية التحقق: <b>'+(authReady?'نعم':'لا')+'</b></p><p>آخر إشعار من Google: <b>'+lastAuthState+'</b></p><small>التشخيص لا يعرض بريدك أو رقم حسابك أو أي رمز سري.</small></div>';
+    user=null;profile=null;authReady=true;renderAccount();
+    $('requestResult').innerHTML='<div class="notice" role="status" style="display:block;text-align:right"><b>انتهت جلسة تسجيل الدخول</b><p>جلسة Firebase غير موجودة حالياً، لذلك لم نرسل الطلب ولم نحاول استخدام بيانات جلسة قديمة.</p><p>سجّل الدخول مرة أخرى بنفس حساب Google ثم أعد إرسال الطلب.</p></div>';
     $('requestResult').style.display='block';
-    toast('الجلسة غير متاحة وقت الإرسال. أرسل لي نتيجة التشخيص الظاهرة تحت النموذج.');
+    toast('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.');
     openLogin();return
   }
   user=activeUser;
   try{
-    // Refresh the credential, then read only this signed-in user's profile.
+    // Refresh the live Firebase credential, then read only this user's profile.
     await activeUser.getIdToken(true);
     const freshProfile=await getDoc(doc(db,'users',activeUser.uid));
     profile=freshProfile.exists()?freshProfile.data():null;
