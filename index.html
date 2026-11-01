@@ -386,7 +386,7 @@ body.role-artist .advOnly{display:none!important}
     <div>
       <span class="tag">طلب إعلان جديد</span>
       <h2>عندك مشروع؟<br>نسمع فكرتك.</h2>
-      <p>سجّل الدخول بحساب قوقل، املأ التفاصيل الأساسية، وطلبك بيوصل لفريق عاين مباشرة. تتابع حالتو من صفحة "طلباتي".</p>
+      <p>أرسل تفاصيل إعلانك مباشرة دون إنشاء حساب. بعد الإرسال ستحصل على رقم طلب لمتابعته من نفس الجهاز والمتصفح.</p>
       <div class="socials"><a href="https://www.facebook.com/profile.php?id=61594511431507&mibextid=ZbWKwL" target="_blank" rel="noopener">صفحة عاين على فيسبوك ↗</a><a href="https://www.facebook.com/wadelsawy?mibextid=ZbWKwL" target="_blank" rel="noopener">ود الصاوي ↗</a></div>
     </div>
     <form id="requestForm">
@@ -398,7 +398,7 @@ body.role-artist .advOnly{display:none!important}
       <label class="field"><span>نوع الإعلان</span><select id="serviceType"><option>إعلان كرتوني</option><option>ريلز وحكاية قصيرة</option><option>فكرة إعلانية</option><option>تصميم منشور</option><option>إعلان آخر</option></select></label>
       <label class="field"><span>وصف الفكرة</span><textarea id="clientBrief" required maxlength="1000" placeholder="احكي لينا عن مشروعك والنتيجة العايز تحققها…"></textarea></label>
       <button class="btn primary" type="submit" style="width:100%">أرسل الطلب</button>
-      <div class="notice guestOnly">لازم تسجّل الدخول بحساب قوقل قبل الإرسال. <a href="#" class="textLink" id="reqLogin">سجّل الدخول الآن</a></div>
+      <div class="notice guestOnly">ما محتاج تسجّل دخول لإرسال طلب إعلان.</div>
       <div class="result" id="requestResult" aria-live="polite"></div>
     </form>
   </div>
@@ -406,7 +406,7 @@ body.role-artist .advOnly{display:none!important}
 
 <!-- TRACK -->
 <section class="page-view light" id="track">
-  <div class="wrap pageTop trackHead"><div><span class="tag">طلباتي</span><h1>متابعة طلباتي</h1><p>الطلبات المرتبطة بحسابك وحالة كل واحد.</p></div></div>
+  <div class="wrap pageTop trackHead"><div><span class="tag">متابعة الطلب</span><h1>متابعة طلباتي</h1><p>طلباتك المرسلة من هذا الجهاز تظهر هنا تلقائياً. احتفظ برقم الطلب الذي يظهر بعد الإرسال.</p></div></div>
   <div class="wrap pageContent"><div class="orders" id="ordersList"><p class="empty">لسه ما في طلبات محفوظة. أرسل طلبك من النموذج.</p></div></div>
 </section>
 </main>
@@ -478,7 +478,7 @@ body.role-artist .advOnly{display:none!important}
 </script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getAuth,GoogleAuthProvider,signInWithPopup,signInAnonymously,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,orderBy,limit,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ===== ضع إعدادات مشروع Firebase هنا ===== */
@@ -533,7 +533,7 @@ modal.addEventListener('click',e=>{if(e.target.closest('[data-page-link]'))close
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLogin();$('warnModal').style.display='none'}});
 const logout=e=>{if(e)e.preventDefault();$('mobileLinks').classList.remove('open');if(ok)signOut(auth)};
 $('logoutBtn').onclick=logout;$('accBtn').onclick=()=>showPage('account');$('logoutM').onclick=logout;
-$('gAdv').onclick=()=>signIn('advertiser');$('gArt').onclick=()=>signIn('artist');
+$('gAdv').onclick=()=>showPage('request');$('gArt').onclick=()=>signIn('artist');
 
 /* تسجيل الحساب: إيميل واحد = حساب واحد، والدور بيتحدد مرة واحدة وما بيتغيّر من العميل */
 async function register(u,role){
@@ -610,17 +610,21 @@ function renderAds(){
 }
 if(ok)onAuthStateChanged(auth,u=>{
   user=u;unsubs.forEach(f=>f());unsubs=[];myArtist=null;myAds=[];artistAds=[];myTopups=[];myWorks=[];profile=null;myReqs=[];authReady=true;document.body.classList.remove('art','role-artist','role-advertiser');
-  document.body.classList.toggle('in',!!u);
+  document.body.classList.toggle('in',!!u&&!u.isAnonymous);
   if(u){
-    $('userName').textContent=(u.displayName||'').split(' ')[0];$('userPic').src=u.photoURL||'';
-    if(!$('clientName').value)$('clientName').value=u.displayName||'';
-    unsubs.push(onSnapshot(doc(db,'artists',u.uid),s=>{myArtist=s.exists()?s.data():null;document.body.classList.toggle('art',!!myArtist&&!(profile&&profile.role==='advertiser'));renderJoin();renderDash();renderArtists(artistsList);renderTopup()},lerr('myArtist')));
+    if(!u.isAnonymous){
+      $('userName').textContent=(u.displayName||'').split(' ')[0];$('userPic').src=u.photoURL||'';
+      if(!$('clientName').value)$('clientName').value=u.displayName||'';
+      unsubs.push(onSnapshot(doc(db,'artists',u.uid),s=>{myArtist=s.exists()?s.data():null;document.body.classList.toggle('art',!!myArtist&&!(profile&&profile.role==='advertiser'));renderJoin();renderDash();renderArtists(artistsList);renderTopup()},lerr('myArtist')));
+    }
     unsubs.push(onSnapshot(query(collection(db,'ads'),where('ownerUid','==',u.uid)),s=>{myAds=s.docs.map(d=>({id:d.id,...d.data()}));renderAds()},e=>{dbg('ads',e);dbBanner(e)}));
-    unsubs.push(onSnapshot(query(collection(db,'ads'),where('artistUid','==',u.uid)),s=>{artistAds=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},lerr('artistAds')));
-    unsubs.push(onSnapshot(query(collection(db,'topups'),where('uid','==',u.uid)),s=>{myTopups=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},lerr('topups')));
-    unsubs.push(onSnapshot(query(collection(db,'artistWorks'),where('ownerUid','==',u.uid)),s=>{myWorks=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},lerr('myWorks')));
-    unsubs.push(onSnapshot(doc(db,'users',u.uid),s=>{profile=s.exists()?s.data():null;document.body.classList.toggle('role-artist',!!profile&&profile.role==='artist');document.body.classList.toggle('role-advertiser',!!profile&&profile.role==='advertiser');document.body.classList.toggle('art',!!myArtist&&!(profile&&profile.role==='advertiser'));if(profile&&profile.status==='deactivated'){toast('تم إيقاف حسابك. تواصل مع الإدارة لإعادة التفعيل.');signOut(auth);return}renderJoin();renderAccount();renderAds()},e=>{dbg('profile',e);dbBanner(e)}));
-    unsubs.push(onSnapshot(query(collection(db,'accountRequests'),where('uid','==',u.uid)),s=>{myReqs=s.docs.map(d=>({id:d.id,...d.data()}));renderJoin();renderAccount()},lerr('accountRequests')));
+    if(!u.isAnonymous){
+      unsubs.push(onSnapshot(query(collection(db,'ads'),where('artistUid','==',u.uid)),s=>{artistAds=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},lerr('artistAds')));
+      unsubs.push(onSnapshot(query(collection(db,'topups'),where('uid','==',u.uid)),s=>{myTopups=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},lerr('topups')));
+      unsubs.push(onSnapshot(query(collection(db,'artistWorks'),where('ownerUid','==',u.uid)),s=>{myWorks=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},lerr('myWorks')));
+      unsubs.push(onSnapshot(doc(db,'users',u.uid),s=>{profile=s.exists()?s.data():null;document.body.classList.toggle('role-artist',!!profile&&profile.role==='artist');document.body.classList.toggle('role-advertiser',!!profile&&profile.role==='advertiser');document.body.classList.toggle('art',!!myArtist&&!(profile&&profile.role==='advertiser'));if(profile&&profile.status==='deactivated'){toast('تم إيقاف حسابك. تواصل مع الإدارة لإعادة التفعيل.');signOut(auth);return}renderJoin();renderAccount();renderAds()},e=>{dbg('profile',e);dbBanner(e)}));
+      unsubs.push(onSnapshot(query(collection(db,'accountRequests'),where('uid','==',u.uid)),s=>{myReqs=s.docs.map(d=>({id:d.id,...d.data()}));renderJoin();renderAccount()},lerr('accountRequests')));
+    }
   }
   renderJoin();renderAds();renderDash();renderArtists(artistsList);renderTopup();renderAccount();
 });
@@ -813,10 +817,9 @@ window.AY.onPage=p=>{if(p==='artists'||p==='track'||p==='artistjoin')startRating
 $('requestForm').onsubmit=async e=>{
   e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;bt.disabled=true;setTimeout(()=>bt.disabled=false,4000);
   if(!ok)return needSetup();
-  if(!authReady){toast('استنى لحظة، بنتحقق من جلستك…');return}
-  if(!user){toast('سجّل الدخول بحساب قوقل أولاً.');openLogin();return}
-  if(!profile){toast('أكمل تسجيل حسابك أولاً (دخول كمعلن).');openLogin();return}
-  if(profile.role!=='advertiser'){toast('حسابك مسجّل كفنان، وما بتقدر ترسل طلبات إعلان منو. اطلب من الإدارة تحويل نوع الحساب.');return}
+  if(!authReady){toast('استنى لحظة، بنتحقق من الجلسة…');return}
+  if(!user){try{const guest=await signInAnonymously(auth);user=guest.user;authReady=true}catch(authErr){dbg('guestAuth',authErr);toast('تعذّر بدء جلسة الزائر. تأكد من تفعيل Anonymous في Firebase.');return}}
+  if(!user.isAnonymous&&(!profile||profile.role!=='advertiser')){toast('حسابك مسجّل كفنان، وما بتقدر ترسل طلبات إعلان منو.');return}
   const p=pkgs.find(x=>x.id===$('pkgSelect').value);
   if(reqArtist){const fa=artistsList.find(x=>x.id===reqArtist.id);if(!fa||(Number(fa.points)||0)<COST()){toast('هذا الفنان غير متاح حالياً.');clearReqArtist();return}if(!$('reqAgree').checked){toast('وافق على التنبيه أولاً.');return}}
   try{
