@@ -36,7 +36,7 @@ jobs:
       - name: Explain audited dependency paths
         if: always()
         run: |
-          for package in firebase @firebase/firestore @firebase/firestore-compat @firebase/rules-unit-testing @grpc/grpc-js firebase-tools; do
+          for package in firebase @firebase/firestore @firebase/firestore-compat @firebase/rules-unit-testing @grpc/grpc-js firebase-tools @google-cloud/pubsub @opentelemetry/core archiver archiver-utils exegesis gaxios gcp-metadata glob google-gax minimatch readdir-glob rimraf superstatic uuid zip-stream; do
             echo "::group::npm explain $package"
             npm explain "$package" || true
             echo "::endgroup::"
