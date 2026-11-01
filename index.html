@@ -535,8 +535,12 @@ async function register(u,role){
   const email=(u.email||'').trim().toLowerCase();
   if(!email||!u.emailVerified){await signOut(auth);toast('لازم حساب قوقل بإيميل موثّق.');return null}
   const cref=doc(db,'emails',email),ref=doc(db,'users',u.uid);
-  authFlowStage='قراءة سجل البريد وملف الحساب';
-  const [cs,us]=await Promise.all([getDoc(cref),getDoc(ref)]);
+  authFlowStage='قراءة سجل البريد';
+  let cs;
+  try{cs=await getDoc(cref)}catch(e){e.authFlowStage=authFlowStage;throw e}
+  authFlowStage='قراءة ملف الحساب';
+  let us;
+  try{us=await getDoc(ref)}catch(e){e.authFlowStage=authFlowStage;throw e}
   if(cs.exists()&&cs.data().uid!==u.uid){await signOut(auth);toast('هذا الإيميل مرتبط بحساب آخر في عاين. تواصل مع الإدارة لحل المشكلة.');return null}
   if(us.exists()){
     const savedRole=us.data().role;
@@ -574,7 +578,7 @@ async function signIn(role){
     if(!currentRole)return;
     user=result.user;
     toast('أهلاً بيك '+(result.user.displayName||'').split(' ')[0]+'.');
-    if(role==='artist')showPage('artistjoin');
+    showPage(role==='artist'?'artistjoin':'account');
   }catch(e){
     dbg('signin',e);
     const M={
@@ -586,7 +590,8 @@ async function signIn(role){
       'auth/cancelled-popup-request':'هناك نافذة تسجيل دخول أخرى قيد الفتح. حاول مرة واحدة.'
     };
     const code=e.code||e.message||'UNKNOWN';
-    toast(M[e.code]||'فشل تسجيل الدخول ('+String(code).slice(0,90)+').');
+    if(e.authFlowStage)toast('تعذّر '+e.authFlowStage+' ('+String(code).slice(0,70)+').');
+    else toast(M[e.code]||'فشل تسجيل الدخول ('+String(code).slice(0,90)+').');
   }
 }
 /* public data */
