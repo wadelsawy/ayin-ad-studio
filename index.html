@@ -699,7 +699,20 @@ if(ok)onAuthStateChanged(auth,u=>{
     $('userName').textContent=(u.displayName||'').split(' ')[0];$('userPic').src=u.photoURL||'';
     if(!$('clientName').value)$('clientName').value=u.displayName||'';
     unsubs.push(onSnapshot(doc(db,'artists',u.uid),s=>{myArtist=s.exists()?s.data():null;document.body.classList.toggle('art',!!myArtist);renderJoin();renderDash();renderArtists(artistsList);renderTopup()},e=>dbg('myArtist',e)));
-    unsubs.push(onSnapshot(query(collection(db,'ads'),where('ownerUid','==',u.uid)),s=>{myAds=s.docs.map(d=>({id:d.id,...d.data()}));renderAds()},e=>{dbg('ads',e);dbBanner(e,'ads')}));
+    // Attach the advertiser-orders listener only after Firebase confirms
+    // the same live user and has produced a fresh ID token for Firestore.
+    (async()=>{
+      try{
+        await u.getIdToken(true);
+        if(!auth.currentUser || auth.currentUser.uid!==u.uid || user?.uid!==u.uid)return;
+        const stop=onSnapshot(query(collection(db,'ads'),where('ownerUid','==',u.uid)),s=>{
+          if(!auth.currentUser || auth.currentUser.uid!==u.uid)return;
+          myAds=s.docs.map(d=>({id:d.id,...d.data()}));renderAds();
+        },e=>{dbg('ads',e);dbBanner(e,'ads')});
+        if(auth.currentUser&&auth.currentUser.uid===u.uid)unsubs.push(stop);
+        else stop();
+      }catch(e){dbg('ads-auth-ready',e);if(e.code==='permission-denied')dbBanner(e,'ads-auth')}
+    })();
     unsubs.push(onSnapshot(query(collection(db,'ads'),where('artistUid','==',u.uid)),s=>{artistAds=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},e=>dbg('artistAds',e)));
     unsubs.push(onSnapshot(query(collection(db,'topups'),where('uid','==',u.uid)),s=>{myTopups=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},e=>dbg('topups',e)));
     unsubs.push(onSnapshot(query(collection(db,'artistWorks'),where('ownerUid','==',u.uid)),s=>{myWorks=s.docs.map(d=>({id:d.id,...d.data()}));renderDash()},e=>dbg('myWorks',e)));
