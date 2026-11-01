@@ -470,7 +470,7 @@ body.role-artist .advOnly{display:none!important}
 </script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,orderBy,limit,onSnapshot,serverTimestamp,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ===== ضع إعدادات مشروع Firebase هنا ===== */
@@ -602,8 +602,9 @@ async function signIn(role){
   if(!ok)return needSetup();
   signInInProgress=true;
   try{
-    // Preserve the established Google popup + local persistence flow.
-    await setPersistence(auth,browserLocalPersistence);
+    // Keep Firebase Auth default persistent storage selection: IndexedDB first,
+    // then browser local storage fallback. Do not force localStorage, which can
+    // be unavailable or unreliable in some Android embedded browsers.
     const result=await signInWithPopup(auth,new GoogleAuthProvider());
     closeLogin();
     if(!result||!result.user)throw new Error('Google sign-in completed without a Firebase user');
