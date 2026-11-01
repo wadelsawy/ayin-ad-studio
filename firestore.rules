@@ -213,13 +213,23 @@ service cloud.firestore {
     // ---------- Ad requests: id = uid_fingerprint (prevents duplicates) ----------
     match /ads/{id} {
       allow read: if signedIn() && (resource.data.ownerUid == request.auth.uid || isAdmin() || resource.data.artistUid == request.auth.uid);
-      allow create: if signedIn() && isActive() && myRole() == 'advertiser'
-        && id.matches(request.auth.uid + '_[a-z0-9]{4,40}')
+      allow create: if signedIn()
+        && (
+          (request.auth.token.firebase.sign_in_provider == 'anonymous'
+            && id.matches(request.auth.uid + '_[a-z0-9]{4,40}')
+            && request.resource.data.ownerUid == request.auth.uid
+            && request.resource.data.ownerEmail == '')
+          ||
+          (isActive() && myRole() == 'advertiser'
+            && id.matches(request.auth.uid + '_[a-z0-9]{4,40}')
+            && request.resource.data.ownerUid == request.auth.uid
+            && request.resource.data.ownerEmail == request.auth.token.email)
+        )
         && request.resource.data.keys().hasOnly(['ownerUid', 'ownerName', 'ownerEmail', 'phone', 'service', 'packageId', 'packageTitle', 'brief', 'artistUid', 'artistName', 'status', 'createdAt'])
         && request.resource.data.keys().hasAll(['ownerUid', 'ownerName', 'ownerEmail', 'phone', 'service', 'brief', 'artistUid', 'status', 'createdAt'])
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.status == 'new'
-        && request.resource.data.ownerEmail == request.auth.token.email
+        && (request.auth.token.firebase.sign_in_provider == 'anonymous' ? request.resource.data.ownerEmail == '' : request.resource.data.ownerEmail == request.auth.token.email)
         && (request.resource.data.ownerName is string && request.resource.data.ownerName.size() <= 100)
         && (request.resource.data.phone is string && request.resource.data.phone.size() <= 30)
         && (request.resource.data['service'] is string && request.resource.data['service'].size() <= 60)
