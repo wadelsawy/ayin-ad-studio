@@ -470,7 +470,7 @@ body.role-artist .advOnly{display:none!important}
 </script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,GoogleAuthProvider,signInWithRedirect,getRedirectResult,updateCurrentUser,onAuthStateChanged,signOut,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,orderBy,limit,onSnapshot,serverTimestamp,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ===== ضع إعدادات مشروع Firebase هنا ===== */
@@ -512,23 +512,8 @@ function applySite(){const f=$('waFab');if(site.whatsapp){f.href=waLink(site.wha
 const ST={new:'جديد',in_progress:'قيد التنفيذ',done:'مكتمل',cancelled:'ملغي',rejected:'مرفوض'};
 const needSetup=()=>toast('أضف إعدادات Firebase في الملف أولاً.');
 if(ok){const app=initializeApp(firebaseConfig);if(APPCHECK_KEY)import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js').then(m=>m.initializeAppCheck(app,{provider:new m.ReCaptchaV3Provider(APPCHECK_KEY),isTokenAutoRefreshEnabled:true})).catch(()=>{});auth=getAuth(app);db=getFirestore(app);
-  // Complete Google sign-in after returning from the provider redirect.
-  getRedirectResult(auth).then(async result=>{
-    if(!result||!result.user)return;
-    // Explicitly attach the redirect-returned user to this Auth instance before
-    // profile reads; do not rely only on the redirect observer timing.
-    await updateCurrentUser(auth,result.user);
-    if(!auth.currentUser)throw new Error('Redirect user was returned but Firebase currentUser is still empty');
-    const role=localStorage.getItem('ayin_pending_auth_role')||'advertiser';
-    localStorage.removeItem('ayin_pending_auth_role');
-    user=result.user;authReady=true;
-    const cur=await register(result.user,role);
-    if(!cur)return;
-    user=result.user;
-    toast('أهلاً بيك '+(result.user.displayName||'').split(' ')[0]+'.');
-    if(cur!==role)toast(cur==='advertiser'?'حسابك مسجّل كمعلن. للانضمام كفنان اطلب التحويل من صفحة "سجّل كفنان".':'حسابك مسجّل كفنان.');
-    if(role==='artist')showPage('artistjoin');
-  }).catch(e=>{dbg('googleRedirectResult',e);toast('تعذّر إكمال تسجيل الدخول ('+(e.code||'خطأ')+'). حاول تسجيل الدخول مرة أخرى.')});
+  // GitHub Pages is hosted outside Firebase Hosting. Use the popup flow so
+  // authentication does not depend on cross-site redirect-helper storage.
 }
 
 /* modal + auth buttons */
@@ -569,16 +554,32 @@ async function register(u,role){
 async function signIn(role){
   if(!ok)return needSetup();
   try{
-    // Redirect flow is more reliable than popup in Android Chrome/custom tabs.
-    await setPersistence(auth,browserLocalPersistence);
-    localStorage.setItem('ayin_pending_auth_role',role);
     closeLogin();
-    await signInWithRedirect(auth,new GoogleAuthProvider());
+    const provider=new GoogleAuthProvider();
+    provider.setCustomParameters({prompt:'select_account'});
+    // Start the popup immediately inside the user's click handler. This is
+    // Firebase's recommended redirect alternative for apps hosted off Firebase.
+    const result=await signInWithPopup(auth,provider);
+    const signedUser=result&&result.user;
+    if(!signedUser)throw new Error('Google sign-in completed without a Firebase user');
+    user=signedUser;authReady=true;
+    const currentRole=await register(signedUser,role);
+    if(!currentRole)return;
+    user=signedUser;
+    toast('أهلاً بيك '+(signedUser.displayName||'').split(' ')[0]+'.');
+    if(currentRole!==role)toast(currentRole==='advertiser'?'حسابك مسجّل كمعلن. للانضمام كفنان اطلب التحويل من صفحة "سجّل كفنان".':'حسابك مسجّل كفنان.');
+    if(role==='artist')showPage('artistjoin');
   }catch(e){
-    localStorage.removeItem('ayin_pending_auth_role');
-    dbg('signinRedirect',e);
-    const M={'auth/unauthorized-domain':'هذا النطاق غير مسموح في إعدادات Firebase.','auth/network-request-failed':'مشكلة في الاتصال بالإنترنت.','auth/user-disabled':'هذا الحساب موقوف. تواصل مع الإدارة.'};
-    toast(M[e.code]||'تعذّر بدء تسجيل الدخول ('+(e.code||'خطأ')+').');
+    dbg('googlePopupSignIn',e);
+    const M={
+      'auth/unauthorized-domain':'نطاق الموقع غير مسموح في إعدادات Firebase.',
+      'auth/network-request-failed':'مشكلة في الاتصال بالإنترنت. حاول مرة أخرى.',
+      'auth/user-disabled':'هذا الحساب موقوف. تواصل مع الإدارة.',
+      'auth/popup-blocked':'المتصفح منع نافذة تسجيل الدخول. افتح الموقع في Chrome مباشرة واسمح بالنوافذ المنبثقة.',
+      'auth/popup-closed-by-user':'أغلقت نافذة تسجيل الدخول قبل اكتمال العملية.',
+      'auth/cancelled-popup-request':'هناك نافذة تسجيل دخول أخرى قيد الفتح. حاول مرة واحدة.'
+    };
+    toast(M[e.code]||'تعذّر تسجيل الدخول ('+(e.code||'خطأ')+'). حاول مرة أخرى.');
   }
 }
 /* public data */
