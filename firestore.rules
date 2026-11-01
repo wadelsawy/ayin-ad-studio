@@ -161,7 +161,7 @@ service cloud.firestore {
             : request.resource.data.get('image', '').size() > 0)
         && request.resource.data.createdAt == request.time;
       allow update: if isAdmin();
-      allow delete: if isAdmin() || (signedIn() && resource.data.ownerUid == request.auth.uid);
+      allow delete: if isAdmin() || (signedIn() && isActive() && resource.data.ownerUid == request.auth.uid && resource.data.status in ['pending', 'rejected']);
     }
 
     // ---------- Ratings: one per completed ad (doc id = ad id), by the advertiser who owns that ad ----------
@@ -202,7 +202,14 @@ service cloud.firestore {
         && request.resource.data.price == get(/databases/$(db)/documents/pointPacks/$(request.resource.data.packId)).data.price
         && request.resource.data.currency == get(/databases/$(db)/documents/pointPacks/$(request.resource.data.packId)).data.get('currency', '')
         && request.resource.data.createdAt == request.time;
-      allow update, delete: if isAdmin();
+      allow update: if isAdmin() || (signedIn() && isActive()
+        && resource.data.uid == request.auth.uid
+        && resource.data.status == 'done'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hiddenBy'])
+        && request.resource.data.get('hiddenBy', {}) is map
+        && request.resource.data.get('hiddenBy', {}).diff(resource.data.get('hiddenBy', {})).affectedKeys().hasOnly([request.auth.uid])
+        && request.resource.data.get('hiddenBy', {}).get(request.auth.uid, false) == true);
+      allow delete: if isAdmin();
     }
 
     // ---------- Ad requests: id = uid_fingerprint (prevents duplicates) ----------
@@ -228,7 +235,14 @@ service cloud.firestore {
              get(/databases/$(db)/documents/artists/$(request.resource.data.artistUid)).data.status == 'approved'
           && get(/databases/$(db)/documents/artists/$(request.resource.data.artistUid)).data.get('points', 0) >= cost()))
         && request.resource.data.createdAt == request.time;
-      allow update, delete: if isAdmin();
+      allow update: if isAdmin() || (signedIn() && isActive()
+        && resource.data.ownerUid == request.auth.uid
+        && resource.data.status == 'done'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hiddenBy'])
+        && request.resource.data.get('hiddenBy', {}) is map
+        && request.resource.data.get('hiddenBy', {}).diff(resource.data.get('hiddenBy', {})).affectedKeys().hasOnly([request.auth.uid])
+        && request.resource.data.get('hiddenBy', {}).get(request.auth.uid, false) == true);
+      allow delete: if isAdmin();
     }
   }
 }
