@@ -240,7 +240,9 @@ service cloud.firestore {
         && request.resource.data.get('hiddenBy', {}) is map
         && request.resource.data.get('hiddenBy', {}).diff(resource.data.get('hiddenBy', {})).affectedKeys().hasOnly([request.auth.uid])
         && request.resource.data.get('hiddenBy', {}).get(request.auth.uid, false) == true);
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || (signedIn() && isActive()
+        && resource.data.ownerUid == request.auth.uid
+        && resource.data.status == 'rejected');
     }
   }
 }

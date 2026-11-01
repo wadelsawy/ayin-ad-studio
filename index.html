@@ -134,7 +134,7 @@ main .page-view.active{display:block;animation:pageIn .35s ease both}
 .modal{width:min(460px,100%);background:#fff;color:#1d1a33;border:3px solid #000;border-radius:24px;padding:30px;position:relative;box-shadow:-8px 8px 0 var(--saffron)}
 .modal h2{margin:0 0 6px;font:400 1.9rem/1.2 var(--display)}.modal>p{color:#5d5a7e;margin:0 0 18px}
 .close{position:absolute;left:16px;top:16px;border:2px solid #000;background:#fff;border-radius:10px;width:36px;height:36px;cursor:pointer;font-size:1.2rem;line-height:1}
-.authOnly{display:none!important}body.in .authOnly{display:revert!important}body.in .guestOnly{display:none!important}
+.authOnly{display:none!important}body.in .authOnly{display:revert!important}body.in .guestOnly{display:none!important}.advertiserOnly{display:none!important}body.in:not(.role-advertiser) .advertiserOnly{display:none!important}body.role-advertiser .advertiserOnly{display:inline-flex!important}
 .userChip{align-items:center;gap:10px;font-size:.9rem}body.in .userChip.authOnly{display:flex!important}
 .userChip img,.avatar{width:36px;height:36px;border-radius:50%;border:2px solid #000;object-fit:cover;background:var(--saffron)}
 .artistGrid,.pkgGrid{display:grid;gap:24px}.artistGrid{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}.pkgGrid{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
@@ -167,7 +167,7 @@ main .page-view.active{display:block;animation:pageIn .35s ease both}
 .artistOnly{display:none!important}body.art .artistOnly{display:revert!important}
 .pts{display:inline-block;padding:4px 14px;border:2px solid #000;border-radius:99px;background:var(--saffron);color:var(--ink);font-weight:600;margin-bottom:6px}.pts.big{font-size:1.3rem;padding:8px 20px}.pts.low{background:#ffd4cc}
 .badge.off{background:#ddd}.acts2{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.joinBox .acts2{justify-content:flex-start}
-.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
+.btn:disabled{opacity:.65;cursor:not-allowed;box-shadow:none;transform:none}.btn.is-processing{background:#64748b!important;color:#fff!important;position:relative}.btn.is-processing:before{content:"";width:14px;height:14px;border:2px solid #ffffff66;border-top-color:#fff;border-radius:50%;animation:ayinSpin .7s linear infinite}.btn.is-success{background:#2563eb!important;color:#fff!important;border-color:#14213d!important}.btn.is-success:disabled{opacity:1}.st.rejected{background:#ffd4cc;color:#8b1e1e}.action-card{margin-top:16px;padding:18px;border:2px solid #1d1a33;border-radius:16px;background:#fff;color:#1d1a33;display:grid;gap:12px}.action-card-head{display:flex;align-items:center;gap:12px}.action-check{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:#2563eb;color:#fff;font-size:1.35rem;font-weight:700;flex:none}.action-card p{margin:3px 0;color:#5d5a7e}.action-details{display:grid;grid-template-columns:1fr 1fr;gap:10px}.action-details div{padding:10px;border-radius:10px;background:#f1f5f9}.action-details small{display:block;color:#64748b}.action-details b{display:block;margin-top:3px}.wa-step{padding:14px;border-radius:12px;background:#eaf8ef;border:1px solid #b7e4c7}.wa-step .btn{background:#16a34a!important;color:#fff!important;box-shadow:none;border-color:#166534}.wa-step .btn:hover{background:#15803d!important;box-shadow:none}.wa-step .btn:before{content:"↗"}@keyframes ayinSpin{to{transform:rotate(360deg)}}
 #home{overflow-x:clip}.order,.order small{overflow-wrap:anywhere}
 .stats{display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:center;font-size:.82rem;margin:8px 0;color:#3b3760}.stats.big2{justify-content:flex-start;font-size:.95rem;margin:10px 0}
 .rate{margin-top:12px;padding:12px;border:2px dashed #1d1a33;border-radius:12px}.rate.doneRate{border-style:solid;background:#fff6d6}
@@ -208,7 +208,7 @@ body.role-artist .advOnly{display:none!important}
       <span class="logo">ع</span><span>عاين<small>الإعلان البخلّيك تعاين مرتين</small></span>
     </a>
     <nav class="links" aria-label="القائمة الرئيسية">
-      <a href="#home" data-page-link="home">الرئيسية</a><a href="#services" data-page-link="services">خدماتنا</a><a href="#packages" data-page-link="packages">الباقات</a><a href="#artists" data-page-link="artists">الفنانون</a><a href="#ideas" data-page-link="ideas">مولّد الأفكار</a><a href="#portfolio" data-page-link="portfolio">معرض الأعمال</a><a class="advOnly" href="#request" data-page-link="request">اطلب إعلان</a><a class="authOnly" href="#track" data-page-link="track">طلباتي</a><a class="artistOnly" href="#artistjoin" data-page-link="artistjoin">حسابي كفنان</a>
+      <a href="#home" data-page-link="home">الرئيسية</a><a href="#services" data-page-link="services">خدماتنا</a><a href="#packages" data-page-link="packages">الباقات</a><a href="#artists" data-page-link="artists">الفنانون</a><a href="#ideas" data-page-link="ideas">مولّد الأفكار</a><a href="#portfolio" data-page-link="portfolio">معرض الأعمال</a><a class="advOnly" href="#request" data-page-link="request">اطلب إعلان</a><a class="authOnly advertiserOnly" href="#track" data-page-link="track">طلباتي</a><a class="artistOnly" href="#artistjoin" data-page-link="artistjoin">حسابي كفنان</a>
     </nav>
     <div style="display:flex;gap:10px;align-items:center">
       <button class="btn primary smallbtn navLogin guestOnly" id="loginOpen">دخول / تسجيل</button><span class="userChip authOnly navLogin"><img id="userPic" class="avatar" alt="" referrerpolicy="no-referrer"><span id="userName"></span><button class="btn secondary smallbtn" id="accBtn">حسابي</button><button class="btn secondary smallbtn" id="logoutBtn">خروج</button></span>
@@ -216,7 +216,7 @@ body.role-artist .advOnly{display:none!important}
     </div>
   </div>
   <nav class="mobileLinks wrap" id="mobileLinks">
-    <a href="#home" data-page-link="home">الرئيسية</a><a href="#services" data-page-link="services">خدماتنا</a><a href="#packages" data-page-link="packages">الباقات</a><a href="#artists" data-page-link="artists">الفنانون</a><a href="#ideas" data-page-link="ideas">مولّد الأفكار</a><a href="#portfolio" data-page-link="portfolio">معرض الأعمال</a><a class="advOnly" href="#request" data-page-link="request">اطلب إعلان</a><a class="authOnly" href="#track" data-page-link="track">متابعة طلباتي</a><a class="artistOnly" href="#artistjoin" data-page-link="artistjoin">حسابي كفنان</a><a class="guestOnly" href="#" id="loginOpenM">دخول / تسجيل</a><a class="authOnly" href="#account" data-page-link="account">حسابي</a><a class="authOnly" href="#" id="logoutM">تسجيل الخروج</a>
+    <a href="#home" data-page-link="home">الرئيسية</a><a href="#services" data-page-link="services">خدماتنا</a><a href="#packages" data-page-link="packages">الباقات</a><a href="#artists" data-page-link="artists">الفنانون</a><a href="#ideas" data-page-link="ideas">مولّد الأفكار</a><a href="#portfolio" data-page-link="portfolio">معرض الأعمال</a><a class="advOnly" href="#request" data-page-link="request">اطلب إعلان</a><a class="authOnly advertiserOnly" href="#track" data-page-link="track">متابعة طلباتي</a><a class="artistOnly" href="#artistjoin" data-page-link="artistjoin">حسابي كفنان</a><a class="guestOnly" href="#" id="loginOpenM">دخول / تسجيل</a><a class="authOnly" href="#account" data-page-link="account">حسابي</a><a class="authOnly" href="#" id="logoutM">تسجيل الخروج</a>
   </nav>
 </header>
 
@@ -507,7 +507,7 @@ const waDigits=p=>{let d=String(p||'').replace(/\D/g,'');if(d.startsWith('00'))d
 const waLink=(n,t)=>'https://wa.me/'+String(n||'').replace(/\D/g,'')+'?text='+encodeURIComponent(t||'');
 const payNote=()=>site.accountNumber?'<br>حوّل عبر '+esc(site.bankName||'بنكك')+' على الحساب: <b>'+esc(site.accountNumber)+'</b>'+(site.accountName?' ('+esc(site.accountName)+')':''):'';
 function applySite(){const f=$('waFab');if(site.whatsapp){f.href=waLink(site.whatsapp,'السلام عليكم، عندي استفسار عن عاين.');f.classList.add('on')}else f.classList.remove('on');renderAds();renderJoin();renderPkgs();renderArtists(artistsList);renderDash();renderTopup();const pw=$('payWa');if(site.whatsapp)pw.href=waLink(site.whatsapp,'السلام عليكم، عايز أطلب إعلان وأعرف طريقة الدفع.');pw.style.display=site.whatsapp?'inline-flex':'none'}
-const ST={new:'جديد',in_progress:'قيد التنفيذ',done:'مكتمل',cancelled:'ملغي'};
+const ST={new:'جديد',in_progress:'قيد التنفيذ',done:'مكتمل',cancelled:'ملغي',rejected:'مرفوض'};
 const needSetup=()=>toast('أضف إعدادات Firebase في الملف أولاً.');
 if(ok){const app=initializeApp(firebaseConfig);if(APPCHECK_KEY)import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js').then(m=>m.initializeAppCheck(app,{provider:new m.ReCaptchaV3Provider(APPCHECK_KEY),isTokenAutoRefreshEnabled:true})).catch(()=>{});auth=getAuth(app);db=getFirestore(app)}
 
@@ -619,9 +619,11 @@ function renderAds(){
   const l=$('ordersList');
   if(ok&&!authReady){l.innerHTML='<p class="empty">جاري التحقق من الجلسة…</p>';return}
   if(!user){l.innerHTML='<p class="empty">سجّل الدخول عشان تشوف طلباتك.</p><button class="btn primary smallbtn" id="trkLogin">سجّل الدخول</button>';$('trkLogin').onclick=openLogin;return}
-  /* §9/§10: استبعاد الطلبات التي أخفاها المعلن عبر علامة hiddenBy */
+  if(!profile){l.innerHTML='<p class="empty">جاري تحميل بيانات حسابك…</p>';return}
+  if(profile.role!=='advertiser'){l.innerHTML='<p class="empty">متابعة الطلبات متاحة لحسابات المعلنين فقط.</p>';return}
+  /* إخفاء الطلبات التي أزالها المعلن من قائمته */
   const a=myAds.filter(x=>!(x.hiddenBy&&x.hiddenBy[user.uid])).sort((x,y)=>(y.createdAt?.seconds||0)-(x.createdAt?.seconds||0));
-  l.innerHTML=a.length?a.map(x=>'<div class="order"><b>'+esc(x.service)+(x.packageTitle?' · '+esc(x.packageTitle):'')+'</b> <span class="st '+esc(x.status)+'">'+(ST[x.status]||'')+'</span><br><small>'+(x.createdAt?new Date(x.createdAt.seconds*1000).toLocaleDateString('ar-EG'):'')+(x.price?' — السعر: '+fmt(x.price):'')+'</small><p>'+esc(x.brief)+'</p>'+rateBox(x)+(x.status==='done'?'<button class="btn smallbtn" type="button" data-delorder="'+esc(x.id)+'" style="margin-top:8px">إزالة من طلباتي</button>':'')+'</div>').join(''):'<p class="empty">لسه ما في طلبات. أرسل طلبك من صفحة "اطلب إعلان".</p>';
+  l.innerHTML=a.length?a.map(x=>'<div class="order"><b>'+esc(x.service)+(x.packageTitle?' · '+esc(x.packageTitle):'')+'</b> <span class="st '+esc(x.status)+'">'+(ST[x.status]||'')+'</span><br><small>'+(x.createdAt?new Date(x.createdAt.seconds*1000).toLocaleDateString('ar-EG'):'')+(x.price?' — السعر: '+fmt(x.price):'')+'</small><p>'+esc(x.brief)+'</p>'+rateBox(x)+(x.status==='rejected'?'<button class="btn smallbtn" type="button" data-delrejected="'+esc(x.id)+'" style="margin-top:8px;background:#ffd4cc">حذف الطلب المرفوض</button>':x.status==='done'?'<button class="btn smallbtn" type="button" data-delorder="'+esc(x.id)+'" style="margin-top:8px">إزالة من طلباتي</button>':'')+'</div>').join(''):'<p class="empty">لسه ما في طلبات. أرسل طلبك من صفحة "اطلب إعلان".</p>';
 }
 if(ok)onAuthStateChanged(auth,u=>{
   user=u;unsubs.forEach(f=>f());unsubs=[];myArtist=null;myAds=[];artistAds=[];myTopups=[];myWorks=[];profile=null;myReqs=[];authReady=true;document.body.classList.remove('art','role-artist','role-advertiser');
@@ -674,7 +676,7 @@ function rateBox(x){
 }
 document.addEventListener('input',e=>{const t=e.target;if(t.classList&&t.classList.contains('rateTxt')){const b=t.closest('[data-ad]');if(b)(rateDraft[b.dataset.ad]=rateDraft[b.dataset.ad]||{stars:0,comment:''}).comment=t.value}});
 document.addEventListener('click',async e=>{
-  const st=e.target.closest('[data-star]'),rt=e.target.closest('[data-rate]'),dw=e.target.closest('[data-delwork]'),dOrd=e.target.closest('[data-delorder]'),dTop=e.target.closest('[data-deltopup]');
+  const st=e.target.closest('[data-star]'),rt=e.target.closest('[data-rate]'),dw=e.target.closest('[data-delwork]'),dRejected=e.target.closest('[data-delrejected]'),dOrd=e.target.closest('[data-delorder]'),dTop=e.target.closest('[data-deltopup]');
   if(st){const b=st.closest('[data-ad]');(rateDraft[b.dataset.ad]=rateDraft[b.dataset.ad]||{stars:0,comment:''}).stars=Number(st.dataset.star);renderAds();return}
   if(rt){
     const id=rt.dataset.rate,ad=myAds.find(x=>x.id===id),dr=rateDraft[id];
@@ -696,7 +698,18 @@ document.addEventListener('click',async e=>{
     catch(err){dbg('delwork',err);toast(errMsg(err,'تعذّر الحذف'));dw.disabled=false}
     return;
   }
-  /* §9/§10/§11: إخفاء طلب مكتمل من قائمة المعلن */
+  /* حذف الطلب المرفوض نهائياً من سجل الطلبات بعد تأكيد المعلن؛ لا يؤثر على الطلبات الأخرى */
+  if(dRejected){
+    if(dRejected.disabled)return;
+    const x=myAds.find(y=>y.id===dRejected.dataset.delrejected);
+    if(!x||x.ownerUid!==user.uid||x.status!=='rejected'){toast('يمكن حذف الطلبات المرفوضة الخاصة بحسابك فقط.');return}
+    if(!confirm('حذف الطلب المرفوض نهائياً؟ لا يمكن التراجع عن الحذف.'))return;
+    dRejected.disabled=true;dRejected.textContent='جاري الحذف…';dRejected.classList.add('is-processing');
+    try{await deleteDoc(doc(db,'ads',x.id));toast('تم حذف الطلب المرفوض.')}
+    catch(err){dbg('delrejected',err);toast(errMsg(err,'تعذّر حذف الطلب'));dRejected.disabled=false;dRejected.textContent='حذف الطلب المرفوض';dRejected.classList.remove('is-processing')}
+    return;
+  }
+  /* إخفاء طلب مكتمل من قائمة المعلن */
   if(dOrd){
     if(dOrd.disabled)return;
     const x=myAds.find(y=>y.id===dOrd.dataset.delorder);
@@ -800,15 +813,17 @@ function renderTopup(){
 }
 $('topupGrid').onclick=async e=>{
   const b=e.target.closest('[data-pack]');if(!b||b.disabled)return;
-  const k=packs.find(x=>x.id===b.dataset.pack);if(!k||!user||!myArtist)return;
-  b.disabled=true;
+  const k=packs.find(x=>x.id===b.dataset.pack);const activeUser=auth.currentUser;
+  if(!k||!activeUser||!myArtist){toast(!activeUser?'سجّل الدخول بحساب الفنان أولاً.':'جاري تحميل ملف الفنان، جرّب بعد لحظة.');return}
+  const original=b.textContent;b.disabled=true;b.classList.add('is-processing');b.textContent='جاري تسجيل العملية…';
   try{
-    const ref=await addDoc(collection(db,'topups'),{uid:user.uid,name:user.displayName||'',packId:k.id,points:Number(k.points),price:Number(k.price),currency:k.currency||'',status:'pending',createdAt:serverTimestamp()});
+    const ref=await addDoc(collection(db,'topups'),{uid:activeUser.uid,name:activeUser.displayName||'',packId:k.id,points:Number(k.points),price:Number(k.price),currency:k.currency||'',status:'pending',createdAt:serverTimestamp()});
     const code='TP-'+ref.id.slice(0,6).toUpperCase();
-    $('topupResult').innerHTML='تم تسجيل طلب التغذية رقم <b>'+code+'</b>.'+payNote()+(site.whatsapp?'<br><a class="btn primary smallbtn" target="_blank" rel="noopener" href="'+esc(waLink(site.whatsapp,'السلام عليكم، أنا فنان في عاين ('+(user.displayName||'')+'). عايز أغذي رصيدي بباقة '+k.points+' نقطة ('+k.price+' '+(k.currency||'')+'). طلب رقم '+code+'.'))+'">أرسل إشعار الدفع على واتساب</a>':'');
-    $('topupResult').style.display='block';
-  }catch(err){toast('تعذّر تسجيل الطلب.')}
-  setTimeout(()=>{b.disabled=false},3000);
+    const message='السلام عليكم فريق عاين 👋\\nطلب تغذية رصيد جديد\\nرقم الطلب: '+code+'\\nاسم الفنان: '+(activeUser.displayName||'')+'\\nالباقة: '+k.points+' نقطة\\nالمبلغ: '+k.price+' '+(k.currency||'')+'\\nأرجو تأكيد التحويل وإضافة النقاط. شكراً لكم.';
+    $('topupResult').innerHTML='<div class="action-card"><div class="action-card-head"><span class="action-check">✓</span><div><b>تم تسجيل طلب التغذية بنجاح</b><p>رقم العملية: <strong>'+esc(code)+'</strong></p></div></div><div class="action-details"><div><small>الباقة</small><b>'+fmt(k.points)+' نقطة</b></div><div><small>المبلغ المطلوب</small><b>'+fmt(k.price)+' '+esc(k.currency||'')+'</b></div></div>'+(site.accountNumber?'<div class="wa-step"><b>بيانات التحويل</b><p>'+esc(site.bankName||'بنكك')+' — '+esc(site.accountNumber)+(site.accountName?' — '+esc(site.accountName):'')+'</p></div>':'')+(site.whatsapp?'<div class="wa-step"><b>الخطوة الأخيرة: أرسل إشعار التحويل</b><p>بعد التحويل اضغط الزر أدناه لإرسال تفاصيل العملية لفريق عاين.</p><a class="btn smallbtn" target="_blank" rel="noopener" href="'+esc(waLink(site.whatsapp,message))+'">أرسل إشعار الدفع عبر واتساب</a></div>':'<p>تم حفظ الطلب، لكن رقم واتساب الإدارة غير متاح حالياً.</p>')+'</div>';
+    $('topupResult').style.display='block';b.classList.remove('is-processing');b.classList.add('is-success');b.textContent='تمت العملية ✓';toast('تم تسجيل طلب التغذية بنجاح.');
+    setTimeout(()=>{if(b.isConnected){b.disabled=false;b.classList.remove('is-success');b.textContent=original}},3500);
+  }catch(err){dbg('topup',err);toast(errMsg(err,'تعذّر تسجيل طلب التغذية'));b.disabled=false;b.classList.remove('is-processing');b.textContent=original}
 };
 
 /* gallery */
@@ -846,18 +861,17 @@ renderWorks();
 
 /* request form */
 $('requestForm').onsubmit=async e=>{
-  e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;bt.disabled=true;
+  e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;const originalLabel=bt.textContent;let submitted=false;bt.disabled=true;bt.classList.add('is-processing');bt.textContent='جاري إرسال الطلب…';
   try{
   if(!ok)return needSetup();
-  if(!authReady){toast('استنى لحظة، بنتحقق من جلستك…');return}
-  if(!user){toast('سجّل الدخول بحساب قوقل أولاً.');openLogin();return}
-  if(!profile){
-    try{
-      const freshProfile=await getDoc(doc(db,'users',user.uid));
-      profile=freshProfile.exists()?freshProfile.data():null;
-    }catch(err){dbg('profileBeforeRequest',err);toast(errMsg(err,'تعذّر التحقق من الحساب'));return}
-  }
-  if(!profile){toast('أكمل تسجيل حسابك أولاً (دخول كمعلن).');openLogin();return}
+  const activeUser=auth.currentUser;
+  if(!activeUser){toast('جلسة Google غير موجودة. سجّل الدخول بحساب المعلن أولاً.');openLogin();return}
+  user=activeUser;
+  try{
+    const freshProfile=await getDoc(doc(db,'users',activeUser.uid));
+    profile=freshProfile.exists()?freshProfile.data():null;
+  }catch(err){dbg('profileBeforeRequest',err);toast(errMsg(err,'تعذّر التحقق من الحساب'));return}
+  if(!profile){toast('لم يكتمل ملف حسابك في عاين. سجّل الدخول بحساب Google مرة أخرى.');return}
   if(profile.role!=='advertiser'){toast('حسابك مسجّل كفنان، وما بتقدر ترسل طلبات إعلان منو. اطلب من الإدارة تحويل نوع الحساب.');return}
   const p=pkgs.find(x=>x.id===$('pkgSelect').value);
   if(reqArtist){const fa=artistsList.find(x=>x.id===reqArtist.id);if(!fa||(Number(fa.points)||0)<COST()){toast('هذا الفنان غير متاح حالياً.');clearReqArtist();return}if(!$('reqAgree').checked){toast('وافق على التنبيه أولاً.');return}}
@@ -866,9 +880,9 @@ $('requestForm').onsubmit=async e=>{
     const adId=user.uid+'_'+fnv([sv,p?p.id:'',reqArtist?reqArtist.id:'',$('clientBrief').value.trim()].join('|'))+Math.floor(Date.now()/600000).toString(36);
     if(myAds.some(x=>x.id===adId)){toast('الطلب ده اتسجّل قبل شوية (تكرار). تقدر تتابعو من "طلباتي".');return}
     const ref={id:adId};await setDoc(doc(db,'ads',adId),{ownerUid:user.uid,ownerName:$('clientName').value.trim(),ownerEmail:user.email||'',phone:$('clientPhone').value.trim(),service:$('serviceType').value,packageId:p?p.id:'',packageTitle:p?p.title:'',brief:$('clientBrief').value.trim(),artistUid:reqArtist?reqArtist.id:'',artistName:reqArtist?reqArtist.name:'',status:'new',createdAt:serverTimestamp()});
-    const code=adCode(ref.id);const ra=reqArtist;const raWa=ra?await getWa(ra):'';$('requestResult').innerHTML='وصل طلبك رقم <b>'+code+'</b>. تقدر تتابعو من "طلباتي".'+payNote()+(raWa?'<br><a class="btn smallbtn" style="margin-top:10px" target="_blank" rel="noopener" href="'+esc(waLink(raWa,'السلام عليكم، أنا '+nm+'. أرسلت لك طلب إعلان عبر عاين رقم '+code+'.'))+'">تواصل مع الفنان مباشرة</a>':'')+(site.whatsapp?'<br><a class="btn primary smallbtn" target="_blank" rel="noopener" href="'+esc(waLink(site.whatsapp,'السلام عليكم، أنا '+nm+'. طلبي رقم '+code+' ('+sv+'). عايز أعرف بيانات الدفع وأرسل إشعار التحويل.'))+'">تواصل واتساب لإتمام الدفع</a>':'');$('requestResult').style.display='block';e.target.reset();toast('تم إرسال الطلب.');clearReqArtist();
+    const code=adCode(ref.id);const ra=reqArtist;const raWa=ra?await getWa(ra):'';const paymentText='السلام عليكم فريق عاين 👋\\nطلب إعلان جديد\\nرقم الطلب: '+code+'\\nاسم المعلن: '+nm+'\\nنوع الإعلان: '+sv+'\\nالباقة: '+(p?p.title:'بدون باقة محددة')+'\\nأرجو إرسال تفاصيل الدفع وتأكيد استلام الطلب. شكراً لكم.';$('requestResult').innerHTML='<div class="action-card"><div class="action-card-head"><span class="action-check">✓</span><div><b>تم إرسال طلبك بنجاح</b><p>رقم الطلب: <strong>'+esc(code)+'</strong></p></div></div><p>تم حفظ طلبك، ويمكنك متابعة حالته من صفحة «طلباتي».</p>'+(site.accountNumber?'<div class="wa-step"><b>بيانات التحويل</b><p>'+esc(site.bankName||'بنكك')+' — '+esc(site.accountNumber)+(site.accountName?' — '+esc(site.accountName):'')+'</p></div>':'')+(raWa?'<a class="btn smallbtn" target="_blank" rel="noopener" href="'+esc(waLink(raWa,'السلام عليكم، أنا '+nm+'. أرسلت لك طلب إعلان عبر عاين رقم '+code+'.'))+'">تواصل مع الفنان مباشرة</a>':'')+(site.whatsapp?'<div class="wa-step"><b>تأكيد الطلب عبر واتساب</b><p>اضغط لإرسال رقم الطلب وتفاصيله لفريق عاين.</p><a class="btn smallbtn" target="_blank" rel="noopener" href="'+esc(waLink(site.whatsapp,paymentText))+'">أرسل رسالة الطلب عبر واتساب</a></div>':'')+'</div>';$('requestResult').style.display='block';e.target.reset();submitted=true;bt.classList.remove('is-processing');bt.classList.add('is-success');bt.textContent='تم إرسال الطلب ✓';setTimeout(()=>{if(bt.isConnected){bt.disabled=false;bt.classList.remove('is-success');bt.textContent=originalLabel}},3500);toast('تم إرسال الطلب بنجاح.');clearReqArtist();
   }catch(err){dbg('request',err);toast(err&&err.code==='permission-denied'?(reqArtist?'ما اتسمح بالطلب: الفنان ممكن ما بقى متاح (تغيّر رصيدو)، أو حسابك مو مسجّل كمعلن. جرّب فنان تاني أو أرسل من غير تحديد فنان. (permission-denied)':'ما اتسمح بالطلب: تأكد إن حسابك مسجّل كمعلن ونشط. (permission-denied)'):errMsg(err,'تعذّر إرسال الطلب'))}
-  }finally{bt.disabled=false}
+  }finally{if(!submitted){bt.disabled=false;bt.classList.remove('is-processing');bt.textContent=originalLabel}}
 };
 applySite();renderAccount();
 </script>
