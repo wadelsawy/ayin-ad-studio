@@ -208,7 +208,7 @@ body.role-artist .advOnly{display:none!important}
       <span class="logo">ع</span><span>عاين<small>الإعلان البخلّيك تعاين مرتين</small></span>
     </a>
     <nav class="links" aria-label="القائمة الرئيسية">
-      <a href="#home" data-page-link="home">الرئيسية</a><a href="#services" data-page-link="services">خدماتنا</a><a href="#packages" data-page-link="packages">الباقات</a><a href="#artists" data-page-link="artists">الفنانون</a><a href="#ideas" data-page-link="ideas">مولّد الأفكار</a><a href="#portfolio" data-page-link="portfolio">معرض الأعمال</a><a class="advOnly" href="#request" data-page-link="request">اطلب إعلان</a><a class="authOnly advertiserOnly" href="#track" data-page-link="track">طلباتي</a><a class="artistOnly" href="#artistjoin" data-page-link="artistjoin">حسابي كفنان</a>
+      <a href="#home" data-page-link="home">الرئيسية</a><a href="#services" data-page-link="services">خدماتنا</a><a class="advOnly" href="#packages" data-page-link="packages">الباقات</a><a href="#artists" data-page-link="artists">الفنانون</a><a href="#ideas" data-page-link="ideas">مولّد الأفكار</a><a href="#portfolio" data-page-link="portfolio">معرض الأعمال</a><a class="advOnly" href="#request" data-page-link="request">اطلب إعلان</a><a class="authOnly advertiserOnly" href="#track" data-page-link="track">طلباتي</a><a class="artistOnly" href="#artistjoin" data-page-link="artistjoin">حسابي كفنان</a>
     </nav>
     <div style="display:flex;gap:10px;align-items:center">
       <button class="btn primary smallbtn navLogin guestOnly" id="loginOpen">دخول / تسجيل</button><span class="userChip authOnly navLogin"><img id="userPic" class="avatar" alt="" referrerpolicy="no-referrer"><span id="userName"></span><button class="btn secondary smallbtn" id="accBtn">حسابي</button><button class="btn secondary smallbtn" id="logoutBtn">خروج</button></span>
@@ -326,7 +326,7 @@ body.role-artist .advOnly{display:none!important}
 </section>
 
 <!-- PACKAGES -->
-<section class="page-view" id="packages">
+<section class="page-view advOnly" id="packages">
   <div class="wrap pageTop"><span class="tag">الباقات</span><h1>باقات عاين</h1><p>اختار الباقة البتناسب مشروعك، وخلينا نبدأ.</p></div>
   <div class="wrap pageContent" style="padding-top:50px"><div class="pkgGrid" id="pkgGrid"><p style="color:var(--muted)">جاري تحميل الباقات…</p></div>
     <div class="sectionHead" style="margin:70px 0 28px"><h2>طريقة الدفع</h2><p>الدفع بسيط، وبيتم عبر التواصل المباشر معانا على واتساب.</p></div>
@@ -350,7 +350,7 @@ body.role-artist .advOnly{display:none!important}
   <div class="wrap pageContent"><div class="joinBox" id="accBox"></div></div>
 </section>
 <!-- TOPUP -->
-<section class="page-view" id="topup">
+<section class="page-view artistOnly" id="topup">
   <div class="wrap pageTop"><span class="tag">للفنانين</span><h1>غذي رصيدك</h1><p>النقاط هي عملة الموقع. كل إعلان بتستقبلو وتنفّذو عبر عاين بيخصم نقاط من رصيدك، ولو رصيدك خلص بطاقتك بتظهر "غير متاح".</p></div>
   <div class="wrap pageContent" style="padding-top:44px">
     <div class="steps"><div class="step"><h3>اختار باقة</h3><p>5 أو 10 أو 20 أو 50 نقطة.</p></div><div class="step"><h3>اطلب التغذية</h3><p>اضغط "اطلب الباقة" ويتسجّل طلبك.</p></div><div class="step"><h3>حوّل المبلغ</h3><p>عبر بنكك، وابعت الإشعار على واتساب.</p></div><div class="step"><h3>نضيف نقاطك</h3><p>بعد التأكد من التحويل بتظهر في حسابك.</p></div></div>
@@ -864,8 +864,11 @@ $('requestForm').onsubmit=async e=>{
   e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;const originalLabel=bt.textContent;let submitted=false;bt.disabled=true;bt.classList.add('is-processing');bt.textContent='جاري إرسال الطلب…';
   try{
   if(!ok)return needSetup();
-  const activeUser=auth.currentUser;
-  if(!activeUser){toast('جلسة Google غير موجودة. سجّل الدخول بحساب المعلن أولاً.');openLogin();return}
+  if(!authReady){toast('جاري التحقق من جلسة الدخول. انتظر لحظة ثم أعد المحاولة.');return}
+  await auth.authStateReady();
+  const activeUser=auth.currentUser||user;
+  if(!activeUser){toast('جلسة Google غير موجودة فعلياً. سجّل الدخول بحساب المعلن أولاً.');openLogin();return}
+  await activeUser.getIdToken();
   user=activeUser;
   try{
     const freshProfile=await getDoc(doc(db,'users',activeUser.uid));
