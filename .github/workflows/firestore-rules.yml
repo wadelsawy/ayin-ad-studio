@@ -11,6 +11,7 @@ on:
   push:
     branches:
       - main
+      - maintenance/zero-cost-safety-2026-11-02
 
 jobs:
   firestore-rules:
@@ -29,6 +30,8 @@ jobs:
           java-version: "21"
       - name: Install test dependencies
         run: npm install
+      - name: Run isolated QA safety guard unit tests
+        run: node --test .github/scripts/qa-safety-guard.test.mjs
       - name: Preview dependency fixes without changing the repository
         run: |
           npm audit fix --dry-run > npm-audit-fix-preview.txt 2>&1 || true
