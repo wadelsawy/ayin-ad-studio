@@ -817,7 +817,22 @@ $('requestForm').onsubmit=async e=>{
   if(!ok)return needSetup();
   if(!authReady){toast('استنى لحظة، بنتحقق من الجلسة…');return}
   if(!user){try{const guest=await signInAnonymously(auth);user=guest.user;authReady=true}catch(authErr){dbg('guestAuth',authErr);toast('تعذّر بدء جلسة الزائر. تأكد من تفعيل Anonymous في Firebase.');return}}
-  if(!user.isAnonymous&&(!profile||profile.role!=='advertiser')){toast('حسابك مسجّل كفنان، وما بتقدر ترسل طلبات إعلان منو.');return}
+  if(!user.isAnonymous){
+    // The auth listener can finish before the user's Firestore profile snapshot arrives.
+    // Re-read the signed-in user's own profile before treating it as missing.
+    if(!profile){
+      try{
+        const profileSnap=await getDoc(doc(db,'users',user.uid));
+        profile=profileSnap.exists()?profileSnap.data():null;
+      }catch(profileErr){
+        dbg('requestProfile',profileErr);
+        toast('تعذّر التحقق من بيانات حسابك. انتظر لحظة ثم أعد المحاولة.');
+        return;
+      }
+    }
+    if(!profile){toast('بيانات حسابك لم تكتمل بعد. حدّث الصفحة وحاول مرة أخرى.');return}
+    if(profile.role!=='advertiser'){toast('حسابك مسجّل كفنان، وما بتقدر ترسل طلبات إعلان منو.');return}
+  }
   const p=pkgs.find(x=>x.id===$('pkgSelect').value);
   if(reqArtist){const fa=artistsList.find(x=>x.id===reqArtist.id);if(!fa||(Number(fa.points)||0)<COST()){toast('هذا الفنان غير متاح حالياً.');clearReqArtist();return}if(!$('reqAgree').checked){toast('وافق على التنبيه أولاً.');return}}
   try{
