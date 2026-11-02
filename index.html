@@ -191,6 +191,13 @@ body.role-artist .advOnly{display:none!important}
 .cta{padding:32px}.section{padding:64px 0}}
 @media(max-width:520px){.waFab{padding:13px}.waFab span{display:none}.steps{grid-template-columns:1fr}.ideaBox,.requestPanel form{padding:22px}.sticker{font-size:.8rem}.s1{right:10px}.s2{left:10px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* button feedback states */
+.btn.is-loading{cursor:wait;opacity:.88;transform:none!important;box-shadow:-2px 2px 0 #000!important}
+.btn.is-loading .btnSpinner{width:1em;height:1em;border:2px solid currentColor;border-left-color:transparent;border-radius:50%;display:inline-block;animation:ayinSpin .7s linear infinite}
+.btn.is-success{background:#2563eb!important;color:#fff!important;border-color:#1d4ed8!important;box-shadow:-4px 4px 0 #1e40af!important}
+.btn.is-error{background:#dc2626!important;color:#fff!important;border-color:#991b1b!important;box-shadow:-4px 4px 0 #7f1d1d!important}
+@keyframes ayinSpin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -439,6 +446,15 @@ body.role-artist .advOnly{display:none!important}
 (function(){
   const $=id=>document.getElementById(id);
   function toast(m){const el=$('toast');el.textContent=m;el.style.display='block';clearTimeout(window.__ayinToast);window.__ayinToast=setTimeout(()=>el.style.display='none',3000)}
+  async function withButtonFeedback(btn,task,successLabel='تم بنجاح ✓'){
+    if(!btn||btn.disabled||btn.dataset.feedbackBusy==='1')return false;
+    const oldHTML=btn.innerHTML,oldDisabled=btn.disabled,wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+    btn.dataset.feedbackBusy='1';btn.disabled=true;btn.setAttribute('aria-busy','true');btn.classList.remove('is-success','is-error');btn.classList.add('is-loading');
+    btn.innerHTML='<span class="btnSpinner" aria-hidden="true"></span> جاري تنفيذ الطلب…';
+    try{const result=await task();if(result===false)return false;btn.classList.remove('is-loading');btn.classList.add('is-success');btn.textContent=successLabel;await wait(1800);return true}
+    catch(error){btn.classList.remove('is-loading');btn.classList.add('is-error');btn.textContent='تعذّر التنفيذ';await wait(1300);throw error}
+    finally{btn.innerHTML=oldHTML;btn.disabled=oldDisabled;btn.removeAttribute('aria-busy');btn.classList.remove('is-loading','is-success','is-error');delete btn.dataset.feedbackBusy}
+  }
   function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   $('year').textContent=new Date().getFullYear();
 
@@ -473,7 +489,7 @@ body.role-artist .advOnly{display:none!important}
   });
   $('copyIdea').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(currentIdea);toast('تم نسخ الفكرة.')}catch(e){const a=document.createElement('textarea');a.value=currentIdea;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('تم نسخ الفكرة.')}catch(err){toast('حدد النص وانسخه يدوياً.')}a.remove()}});
 
-  window.AY={$,toast,esc,showPage};
+  window.AY={$,toast,esc,showPage,withButtonFeedback};
 })();
 </script>
 <script type="module">
@@ -487,7 +503,7 @@ const firebaseConfig={apiKey:"AIzaSyBIxmk6lu-xNJ1sOLAbCQipnvv5M_k1eXU",authDomai
 const APPCHECK_KEY=''; /* مفتاح reCAPTCHA v3 لحماية App Check: اتركه فارغاً الآن */
 
 
-const {$,toast,esc,showPage}=window.AY;
+const {$,toast,esc,showPage,withButtonFeedback}=window.AY;
 const ok=!firebaseConfig.apiKey.startsWith('YOUR');
 let auth,db,user=null,myArtist=null,myAds=[],pkgs=[],unsubs=[],artistsList=[],packs=[],artistAds=[],myTopups=[],reqArtist=null,warnCb=null,profile=null,myReqs=[],authReady=false,dbWarned=false,ratingsList=[],aWorksPub=[],myWorks=[],portfolioItems=[],rateDraft={},ratingsStarted=false,ratingsLoaded=false;
 const dbg=(ctx,e)=>console.error('[ayin]',ctx,(e&&e.code)||'',(e&&e.message)||'');
@@ -813,7 +829,7 @@ window.AY.onPage=p=>{if(p==='artists'||p==='track'||p==='artistjoin')startRating
 
 /* request form */
 $('requestForm').onsubmit=async e=>{
-  e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;bt.disabled=true;setTimeout(()=>bt.disabled=false,4000);
+  e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;
   if(!ok)return needSetup();
   if(!authReady){toast('استنى لحظة، بنتحقق من الجلسة…');return}
   if(!user){try{const guest=await signInAnonymously(auth);user=guest.user;authReady=true}catch(authErr){dbg('guestAuth',authErr);toast('تعذّر بدء جلسة الزائر. تأكد من تفعيل Anonymous في Firebase.');return}}
@@ -835,13 +851,14 @@ $('requestForm').onsubmit=async e=>{
   }
   const p=pkgs.find(x=>x.id===$('pkgSelect').value);
   if(reqArtist){const fa=artistsList.find(x=>x.id===reqArtist.id);if(!fa||(Number(fa.points)||0)<COST()){toast('هذا الفنان غير متاح حالياً.');clearReqArtist();return}if(!$('reqAgree').checked){toast('وافق على التنبيه أولاً.');return}}
-  try{
+  try{await withButtonFeedback(bt,async()=>{
     const nm=$('clientName').value.trim(),sv=$('serviceType').value;
     const adId=user.uid+'_'+fnv([sv,p?p.id:'',reqArtist?reqArtist.id:'',$('clientBrief').value.trim()].join('|'))+Math.floor(Date.now()/600000).toString(36);
-    if(myAds.some(x=>x.id===adId)){toast('الطلب ده اتسجّل قبل شوية (تكرار). تقدر تتابعو من "طلباتي".');return}
+    if(myAds.some(x=>x.id===adId)){toast('الطلب ده اتسجّل قبل شوية (تكرار). تقدر تتابعو من "طلباتي".');return false}
     const ref={id:adId};await setDoc(doc(db,'ads',adId),{ownerUid:user.uid,ownerName:$('clientName').value.trim(),ownerEmail:user.email||'',phone:$('clientPhone').value.trim(),service:$('serviceType').value,packageId:p?p.id:'',packageTitle:p?p.title:'',brief:$('clientBrief').value.trim(),artistUid:reqArtist?reqArtist.id:'',artistName:reqArtist?reqArtist.name:'',status:'new',createdAt:serverTimestamp()});
     const code=adCode(ref.id);const ra=reqArtist;const raWa=ra?await getWa(ra):'';$('requestResult').innerHTML='وصل طلبك رقم <b>'+code+'</b>. تقدر تتابعو من "طلباتي".'+payNote()+(raWa?'<br><a class="btn smallbtn" style="margin-top:10px" target="_blank" rel="noopener" href="'+esc(waLink(raWa,'السلام عليكم، أنا '+nm+'. أرسلت لك طلب إعلان عبر عاين رقم '+code+'.'))+'">تواصل مع الفنان مباشرة</a>':'')+(site.whatsapp?'<br><a class="btn primary smallbtn" target="_blank" rel="noopener" href="'+esc(waLink(site.whatsapp,'السلام عليكم، أنا '+nm+'. طلبي رقم '+code+' ('+sv+'). عايز أعرف بيانات الدفع وأرسل إشعار التحويل.'))+'">تواصل واتساب لإتمام الدفع</a>':'');$('requestResult').style.display='block';e.target.reset();toast('تم إرسال الطلب.');clearReqArtist();
-  }catch(err){dbg('request',err);toast(err&&err.code==='permission-denied'?(reqArtist?'ما اتسمح بالطلب: الفنان ممكن ما بقى متاح (تغيّر رصيدو)، أو حسابك مو مسجّل كمعلن. جرّب فنان تاني أو أرسل من غير تحديد فنان. (permission-denied)':'ما اتسمح بالطلب: تأكد إن حسابك مسجّل كمعلن ونشط. (permission-denied)'):errMsg(err,'تعذّر إرسال الطلب'))}
+
+  },'تم إرسال الطلب ✓')}  }catch(err){dbg('request',err);toast(err&&err.code==='permission-denied'?(reqArtist?'ما اتسمح بالطلب: الفنان ممكن ما بقى متاح (تغيّر رصيدو)، أو حسابك مو مسجّل كمعلن. جرّب فنان تاني أو أرسل من غير تحديد فنان. (permission-denied)':'ما اتسمح بالطلب: تأكد إن حسابك مسجّل كمعلن ونشط. (permission-denied)'):errMsg(err,'تعذّر إرسال الطلب'))}
 };
 applySite();renderAccount();
 window.__ready=1;
