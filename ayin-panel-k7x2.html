@@ -304,12 +304,11 @@ const wSync=()=>{const v=$('wType').value==='video';$('wUrlBox').style.display=v
 $('wType').onchange=wSync;
 $('wFile').onchange=async()=>{const f=$('wFile').files[0];if(!f){$('wPrev').style.display='none';return}try{$('wPrev').src=await shrink(f);$('wPrev').style.display='block'}catch(e){toast('تعذّر قراءة الصورة.')}};
 $('workForm').onsubmit=async e=>{e.preventDefault();
-  const t=$('wType').value,f=$('wFile').files[0],u=$('wUrl').value.trim();
+  const bt=$('wSave'),t=$('wType').value,f=$('wFile').files[0],u=$('wUrl').value.trim();
+  if(bt.disabled)return;
   if(t==='video'&&!/^https?:\/\//i.test(u))return toast('أدخل رابط الفيديو.');
   if(t!=='video'&&!f)return toast('اختار صورة.');
-  $('wSave').disabled=true;
-  try{const img=f?await shrink(f):'';await addDoc(collection(db,'portfolio'),{type:t,title:$('wTitle').value.trim(),desc:$('wDesc').value.trim(),image:img,url:t==='video'?u:'',createdAt:serverTimestamp()});e.target.reset();wSync();$('wPrev').style.display='none';toast('تمت الإضافة للمعرض.')}catch(err){toast('فشلت الإضافة: '+(err.code||err.message))}
-  $('wSave').disabled=false};
+  try{await withButtonFeedback(bt,async()=>{const img=f?await shrink(f):'';await addDoc(collection(db,'portfolio'),{type:t,title:$('wTitle').value.trim(),desc:$('wDesc').value.trim(),image:img,url:t==='video'?u:'',createdAt:serverTimestamp()});e.target.reset();wSync();$('wPrev').style.display='none';toast('تمت الإضافة للمعرض.')},'تمت الإضافة ✓')}catch(err){toast('فشلت الإضافة: '+(err.code||err.message))}};
 $('setForm').onsubmit=async e=>{e.preventDefault();const bt=e.target.querySelector('button[type=submit]');try{await withButtonFeedback(bt,async()=>{await setDoc(doc(db,'settings','site'),{whatsapp:waNum($('sWa').value),bankName:$('sBank').value.trim(),accountNumber:$('sAcc').value.trim(),accountName:$('sName').value.trim(),pointsPerAd:Math.max(1,parseInt($('sCost').value,10)||5),freePoints:Math.max(0,parseInt($('sFree').value,10)||0),xpPerAd:Math.max(0,parseInt($('sXp').value,10)||0)});toast('تم حفظ الإعدادات.')},'تم حفظ الإعدادات ✓')}catch(err){toast('فشل الحفظ: '+(err.code||''))}};
 $('pkgForm').onsubmit=async e=>{e.preventDefault();const bt=e.target.querySelector('button[type=submit]');
   const data={title:$('pTitle').value.trim(),price:Number($('pPrice').value),currency:$('pCur').value.trim(),features:$('pFeat').value.split('\n').map(x=>x.trim()).filter(Boolean),order:Number($('pOrder').value)||0,featured:$('pFtd').checked};
