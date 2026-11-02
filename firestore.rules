@@ -103,6 +103,19 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ---------- Private artist balances and reviewer identities ----------
+    // Artists may read only their own balance; only admins may write or list.
+    match /artistPrivate/{uid} {
+      allow get: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Reviewer identity is never needed by public artist cards.
+    match /ratingPrivate/{rid} {
+      allow read, write: if isAdmin();
+    }
+
     // ---------- Artist WhatsApp: private; single-doc reads only, after a consent lead ----------
     match /contacts/{uid} {
       allow get: if isAdmin() || (signedIn() && isActive() && (request.auth.uid == uid
