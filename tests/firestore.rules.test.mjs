@@ -5,7 +5,7 @@ import {
   assertFails,
   assertSucceeds
 } from '@firebase/rules-unit-testing';
-import { doc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 
 const projectId = 'demo-ayn-marketplace';
 let testEnv;
@@ -195,4 +195,27 @@ test('an artist cannot create an advertiser ad request', async () => {
     doc(db, 'ads/artist_abcd'),
     adPayload('artist', 'artist@example.com')
   ));
+});
+
+
+test('artist private balances are readable only by their owner and admins', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), 'artistPrivate/artist'), { points: 25 });
+  });
+  const artistDb = dbFor('artist');
+  const attackerDb = dbFor('attacker');
+  const publicDb = testEnv.unauthenticatedContext().firestore();
+  await assertSucceeds(getDoc(doc(artistDb, 'artistPrivate/artist')));
+  await assertFails(getDoc(doc(attackerDb, 'artistPrivate/artist')));
+  await assertFails(getDoc(doc(publicDb, 'artistPrivate/artist')));
+  await assertSucceeds(getDoc(doc(adminDb(), 'artistPrivate/artist')));
+});
+
+test('only admins can access private reviewer identities', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), 'ratingPrivate/ad-owner'), { raterUid: 'owner' });
+  });
+  await assertSucceeds(getDoc(doc(adminDb(), 'ratingPrivate/ad-owner')));
+  await assertFails(getDoc(doc(dbFor('owner'), 'ratingPrivate/ad-owner')));
+  await assertFails(getDoc(doc(testEnv.unauthenticatedContext().firestore(), 'ratingPrivate/ad-owner')));
 });
