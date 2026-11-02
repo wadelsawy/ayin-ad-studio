@@ -79,7 +79,7 @@ try {
   if (verified.emailVerified !== true) {
     throw new Error(`Auth Emulator did not verify the test account: ${JSON.stringify(verified)}`);
   }
-  const lookup = await jsonPost(`${api}/accounts:lookup?key=fake-api-key`, { idToken: verified.idToken });
+  const lookup = await jsonPost(`${api}/accounts:lookup?key=fake-api-key`, { idToken: signup.idToken });
   if (lookup.users?.[0]?.emailVerified !== true) {
     throw new Error(`Verified claim not reflected in Auth Emulator lookup: ${JSON.stringify(lookup)}`);
   }
