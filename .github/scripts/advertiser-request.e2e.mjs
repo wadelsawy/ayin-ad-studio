@@ -33,8 +33,8 @@ try {
     throw new Error('Fail-closed: application Firebase/auth initialization changed; review the test adapter before running.');
   }
 
-  const verificationGuard = 'if(!email||!u.emailVerified)';
-  const testOnlyGuard = "if(!email)";
+  const verificationGuard = "if(!email||!u.emailVerified){await signOut(auth);toast('لازم حساب قوقل بإيميل موثّق.');return null}";
+  const testOnlyGuard = "if(!email){await signOut(auth);toast('Test account email is missing.');return null}";
   if (!source.includes(verificationGuard)) {
     throw new Error('Fail-closed: email verification guard changed; review the isolated test adapter.');
   }
