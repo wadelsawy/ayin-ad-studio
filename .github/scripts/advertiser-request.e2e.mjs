@@ -41,7 +41,7 @@ try {
 
   const raceMarker = "    // Re-read the signed-in user's own profile before treating it as missing.";
   if (!source.includes(raceMarker)) throw new Error('Fail-closed: profile recheck fallback missing.');
-  let html = source.replace(raceMarker, "    if(window.__qaForceProfileRace)profile=null;\\n"+raceMarker).replace(verificationGuard, testOnlyGuard)
+  let html = source.replace(raceMarker, "    if(window.__qaForceProfileRace)profile=null;\n"+raceMarker).replace(verificationGuard, testOnlyGuard)
     .replace('import {getAuth,GoogleAuthProvider,signInWithPopup,signInAnonymously,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";',
       'import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithEmailAndPassword,signInAnonymously,onAuthStateChanged,signOut,connectAuthEmulator} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";')
     .replace('import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,orderBy,limit,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";',
