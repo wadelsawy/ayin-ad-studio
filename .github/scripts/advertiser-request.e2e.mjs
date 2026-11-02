@@ -43,7 +43,7 @@ try {
     .replace('auth=getAuth(app);db=getFirestore(app)',
       'auth=getAuth(app);db=getFirestore(app);connectAuthEmulator(auth,"http://127.0.0.1:9099",{disableWarnings:true});connectFirestoreEmulator(db,"127.0.0.1",8080)')
     .replace('signInWithPopup(auth,new GoogleAuthProvider())',
-      `signInWithEmailAndPassword(auth,'${EMAIL}','${PASSWORD}')`);
+      `signInWithEmailAndPassword(auth,'${EMAIL}','${PASSWORD}').then(async result=>{await result.user.reload();return result;})`);
 
   if (html.includes('ayn-marketplace.firebaseapp.com') || html.includes('projectId:"ayn-marketplace"')) {
     throw new Error('Fail-closed: production Firebase configuration remains in the temporary test page.');
