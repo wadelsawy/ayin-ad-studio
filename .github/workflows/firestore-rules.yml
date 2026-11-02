@@ -50,5 +50,18 @@ jobs:
             npm explain "$package" || true
             echo "::endgroup::"
           done
+      - name: Install isolated browser-test dependency
+        run: npm install --no-save --package-lock=false playwright@1.56.1
+      - name: Install Chromium for the isolated browser test
+        run: npx playwright install chromium
+      - name: Run advertiser request browser test against local emulators only
+        env:
+          FIREBASE_PROJECT_ID: demo-ayn-marketplace
+          FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
+          AUTH_EMULATOR_HOST: 127.0.0.1:9099
+          FIREBASE_CONFIG: '{"projectId":"demo-ayn-marketplace"}'
+        run: |
+          node .github/scripts/qa-safety-guard.mjs
+          firebase emulators:exec --project demo-ayn-marketplace --only auth,firestore "node .github/scripts/advertiser-request.e2e.mjs"
       - name: Run Firestore rules tests
         run: npm test
