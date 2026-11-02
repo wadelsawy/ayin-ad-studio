@@ -59,7 +59,7 @@ try {
 
   await writeFile(join(TEMP, 'index.html'), html);
   const setupResponse = await fetch('http://127.0.0.1:9099/emulator/v1/projects/demo-ayn-marketplace/accounts', {
-    method: 'POST',
+    method: 'PATCH',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ email: EMAIL, password: PASSWORD, emailVerified: true, displayName: 'QA Advertiser' })
   });
