@@ -685,11 +685,11 @@ document.addEventListener('click',async e=>{
     const id=rt.dataset.rate,ad=myAds.find(x=>x.id===id),dr=rateDraft[id];
     if(!ad)return;if(ratingsList.some(r=>r.id===id)){toast('قيّمت هذا الإعلان قبل كده.');return}
     if(!dr||!(dr.stars>=1)){toast('اختار عدد النجوم أولاً.');return}
-    if(rt.disabled)return;rt.disabled=true;
-    try{await setDoc(doc(db,'ratings',id),{adId:id,artistUid:ad.artistUid,raterUid:user.uid,stars:dr.stars,comment:(dr.comment||'').trim(),createdAt:serverTimestamp()});delete rateDraft[id];toast('شكراً! تم إرسال تقييمك.')}
-    catch(err){dbg('rating',err);toast(err&&err.code==='permission-denied'?'ما اتسمح بالتقييم (permission-denied): التقييم متاح بعد اكتمال الإعلان ولمرة واحدة.':errMsg(err,'تعذّر إرسال التقييم'));rt.disabled=false}
+    if(rt.disabled)return;
+    try{await withButtonFeedback(rt,async()=>{await setDoc(doc(db,'ratings',id),{adId:id,artistUid:ad.artistUid,raterUid:user.uid,stars:dr.stars,comment:(dr.comment||'').trim(),createdAt:serverTimestamp()});delete rateDraft[id];toast('شكراً! تم إرسال تقييمك.')},'تم إرسال التقييم ✓')}
+    catch(err){dbg('rating',err);toast(err&&err.code==='permission-denied'?'ما اتسمح بالتقييم (permission-denied): التقييم متاح بعد اكتمال الإعلان ولمرة واحدة.':errMsg(err,'تعذّر إرسال التقييم'))}
     return}
-  if(dw){const wk=myWorks.find(x=>x.id===dw.dataset.delwork);if(!wk||wk.status==='approved'){toast('الأعمال المعتمدة ما بتتحذف من هنا. تواصل مع الإدارة لو عايز تشيلها.');return}if(!confirm('حذف هذا العمل؟'))return;try{await deleteDoc(doc(db,'artistWorks',dw.dataset.delwork));toast('تم الحذف.')}catch(err){dbg('delwork',err);toast(errMsg(err,'تعذّر الحذف'))}}
+  if(dw){const wk=myWorks.find(x=>x.id===dw.dataset.delwork);if(!wk||wk.status==='approved'){toast('الأعمال المعتمدة ما بتتحذف من هنا. تواصل مع الإدارة لو عايز تشيلها.');return}if(!confirm('حذف هذا العمل؟'))return;try{await withButtonFeedback(dw,async()=>{await deleteDoc(doc(db,'artistWorks',dw.dataset.delwork));toast('تم الحذف.')},'تم الحذف ✓')}catch(err){dbg('delwork',err);toast(errMsg(err,'تعذّر الحذف'))}}
 });
 
 /* remove a COMPLETED item from my personal list (hidden on this device; admin records untouched) */
@@ -699,8 +699,7 @@ document.addEventListener('click',e=>{
   const item=kind==='ad'?myAds.find(x=>x.id===id):kind==='top'?myTopups.find(x=>x.id===id):null;
   if(!user||!item||item.status!=='done'){toast('ما ممكن حذف هذا الطلب من القائمة: لسه ما اكتمل.');return}
   if(!confirm('حذف هذا الطلب من قائمتك؟ ما بيتأثر الرصيد ولا حالة الطلب ولا سجلات الإدارة.'))return;
-  b.disabled=true;
-  if(setHidden(getHidden().concat(id))){toast('تم حذف الطلب من قائمتك.');if(kind==='ad')renderAds();else renderDash()}else b.disabled=false;
+  withButtonFeedback(b,async()=>{if(setHidden(getHidden().concat(id))){toast('تم حذف الطلب من قائمتك.');if(kind==='ad')renderAds();else renderDash()}else return false},'تم الحذف من قائمتك ✓').catch(()=>{});
 });
 
 /* points, warning, artist dashboard, top-up */
