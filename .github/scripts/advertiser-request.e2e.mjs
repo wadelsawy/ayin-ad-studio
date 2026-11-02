@@ -33,7 +33,13 @@ try {
     throw new Error('Fail-closed: application Firebase/auth initialization changed; review the test adapter before running.');
   }
 
-  let html = source
+  const verificationGuard = 'if(!email||!u.emailVerified)';
+  const testOnlyGuard = "if(!email||(!u.emailVerified&&email!=='qa-advertiser@example.test'))";
+  if (!source.includes(verificationGuard)) {
+    throw new Error('Fail-closed: email verification guard changed; review the isolated test adapter.');
+  }
+
+  let html = source.replace(verificationGuard, testOnlyGuard)
     .replace('import {getAuth,GoogleAuthProvider,signInWithPopup,signInAnonymously,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";',
       'import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithEmailAndPassword,signInAnonymously,onAuthStateChanged,signOut,connectAuthEmulator} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";')
     .replace('import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,orderBy,limit,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";',
