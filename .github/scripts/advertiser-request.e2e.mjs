@@ -82,14 +82,21 @@ try {
   });
   const page = await context.newPage();
   const errors = [];
+  const browserLogs = [];
   page.on('pageerror', error => errors.push(error.message));
+  page.on('console', msg => { if (msg.type() === 'error') browserLogs.push(msg.text()); });
   await page.goto(`http://${HOST}:${PORT}/`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__ready === 1, null, { timeout: 20000 });
 
   await page.locator('#loginOpen').click();
   await page.locator('#loginModal').waitFor({ state: 'visible', timeout: 10000 });
   await page.locator('#gAdv').click();
-  await page.locator('body.role-advertiser').waitFor({ state: 'attached', timeout: 20000 });
+  try {
+    await page.locator('body.role-advertiser').waitFor({ state: 'attached', timeout: 20000 });
+  } catch (error) {
+    const diagnostics = await page.evaluate(() => ({ bodyClass: document.body.className, toast: document.querySelector('#toast')?.textContent, userName: document.querySelector('#userName')?.textContent }));
+    throw new Error(`Advertiser profile did not load. Diagnostics: ${JSON.stringify(diagnostics)}; pageErrors=${JSON.stringify(errors)}; consoleErrors=${JSON.stringify(browserLogs)}; wait=${error.message}`);
+  }
   await page.evaluate(() => window.AY.showPage('request'));
   await page.locator('#clientName').fill('معلن اختبار');
   await page.locator('#clientPhone').fill('0912345678');
