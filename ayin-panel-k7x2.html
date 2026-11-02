@@ -263,12 +263,13 @@ if(ok)onAuthStateChanged(auth,async u=>{
     $('runPrivateMigration').onclick=async()=>{
       const b=$('runPrivateMigration'),status=$('privateMigrationStatus');
       if(!confirm('سيتم نسخ الأرصدة وهويات أصحاب التقييمات إلى مجموعات خاصة. لن تُحذف أو تتغير أي بيانات حالية. نبدأ؟'))return;
+      let migrationStage='بدء العملية';
       try{await withButtonFeedback(b,async()=>{
-        status.textContent='جاري فحص البيانات…';
-        const [artistSnap,ratingSnap,privateArtistSnap,privateRatingSnap]=await Promise.all([
-          getDocs(collection(db,'artists')),getDocs(collection(db,'ratings')),
-          getDocs(collection(db,'artistPrivate')),getDocs(collection(db,'ratingPrivate'))
-        ]);
+        const read=async(name)=>{migrationStage='قراءة مجموعة '+name;status.textContent='جاري فحص '+name+'…';try{return await getDocs(collection(db,name))}catch(e){e.message='فشل قراءة '+name+': '+(e.code||e.message||'خطأ');throw e}};
+        const artistSnap=await read('artists');
+        const ratingSnap=await read('ratings');
+        const privateArtistSnap=await read('artistPrivate');
+        const privateRatingSnap=await read('ratingPrivate');
         const existingArtists=new Set(privateArtistSnap.docs.map(x=>x.id));
         const existingRatings=new Set(privateRatingSnap.docs.map(x=>x.id));
         const writes=[];
@@ -283,13 +284,15 @@ if(ok)onAuthStateChanged(auth,async u=>{
             writes.push({ref:doc(db,'ratingPrivate',s.id),data:{raterUid:d.raterUid,migratedAt:serverTimestamp()}});
         });
         for(let i=0;i<writes.length;i+=400){
+          migrationStage='حفظ الدفعة '+(Math.floor(i/400)+1);
+          status.textContent='جاري نسخ البيانات… '+(i+1)+' من '+writes.length;
           const batch=(await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js')).writeBatch(db);
           writes.slice(i,i+400).forEach(w=>batch.set(w.ref,w.data,{merge:true}));
           await batch.commit();
         }
         status.textContent='اكتمل النسخ: '+writes.filter(w=>w.ref.parent.id==='artistPrivate').length+' رصيد فنان و'+writes.filter(w=>w.ref.parent.id==='ratingPrivate').length+' هوية تقييم. البيانات الأصلية لم تُحذف.';
         toast('اكتمل نسخ البيانات الخاصة.');
-      },'اكتمل النسخ ✓')}catch(err){console.error('[ayin-private-migration]',err);status.textContent='تعذّر النسخ: '+(err.code||err.message||'خطأ');toast('فشلت عملية النسخ. البيانات الأصلية لم تتغير.')}
+      },'اكتمل النسخ ✓')}catch(err){console.error('[ayin-private-migration]',migrationStage,err);const code=err.code||'بدون رمز';const detail=String(err.message||'خطأ غير معروف').slice(0,220);status.textContent='فشل عند: '+migrationStage+' — '+code+' — '+detail+'. البيانات الأصلية لم تتغير.';toast('فشلت عملية النسخ؛ راجع سبب الفشل الظاهر تحت الزر.')}
     };
   }
   if(started)return;started=true;
