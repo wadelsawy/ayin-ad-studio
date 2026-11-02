@@ -87,13 +87,11 @@ try {
   await page.waitForFunction(() => window.__ready === 1, null, { timeout: 20000 });
 
   await page.locator('#gAdv').click();
-  await page.getByText(/حسابك مسجّل كمعلن|أهلاً بيك/).first().waitFor({ timeout: 15000 }).catch(() => {});
-  await page.locator('[data-page-link="request"]').first().click();
+  await page.locator('#toast').filter({ hasText: 'أهلاً بيك' }).waitFor({ timeout: 15000 });
+  await page.evaluate(() => window.AY.showPage('request'));
   await page.locator('#clientName').fill('معلن اختبار');
   await page.locator('#clientPhone').fill('0912345678');
-  await page.locator('#serviceType').selectOption({ label: 'ريلز' }).catch(async () => {
-    await page.locator('#serviceType').selectOption({ index: 1 });
-  });
+  await page.locator('#serviceType').selectOption({ index: 1 });
   await page.locator('#clientBrief').fill('اختبار آلي معزول لإرسال طلب إعلان تجريبي');
   await page.locator('#requestForm button[type="submit"]').click();
   await page.locator('#requestResult').waitFor({ state: 'visible', timeout: 20000 });
