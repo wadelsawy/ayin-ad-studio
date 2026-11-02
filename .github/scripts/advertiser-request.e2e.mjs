@@ -58,14 +58,30 @@ try {
   }
 
   await writeFile(join(TEMP, 'index.html'), html);
-  const setupResponse = await fetch('http://127.0.0.1:9099/emulator/v1/projects/demo-ayn-marketplace/accounts', {
-    method: 'PATCH',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email: EMAIL, password: PASSWORD, emailVerified: true, displayName: 'QA Advertiser' })
+  const api = 'http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1';
+  const signup = await jsonPost(`${api}/accounts:signUp?key=fake-api-key`, {
+    email: EMAIL, password: PASSWORD, returnSecureToken: true
   });
-  const setupData = await setupResponse.json();
-  if (!setupResponse.ok || setupData.emailVerified !== true) {
-    throw new Error(`Auth Emulator verified-user setup failed: ${JSON.stringify(setupData)}`);
+  await jsonPost(`${api}/accounts:sendOobCode?key=fake-api-key`, {
+    requestType: 'VERIFY_EMAIL', idToken: signup.idToken
+  });
+  const oobResponse = await fetch('http://127.0.0.1:9099/emulator/v1/projects/demo-ayn-marketplace/oobCodes');
+  const oobData = await oobResponse.json();
+  const verification = (oobData.oobCodes || []).find(code =>
+    code.email === EMAIL && code.requestType === 'VERIFY_EMAIL'
+  );
+  if (!verification?.oobCode) {
+    throw new Error(`Auth Emulator did not expose a verification code: ${JSON.stringify(oobData)}`);
+  }
+  const verified = await jsonPost(`${api}/accounts:update?key=fake-api-key`, {
+    oobCode: verification.oobCode, returnSecureToken: true
+  });
+  if (verified.emailVerified !== true) {
+    throw new Error(`Auth Emulator did not verify the test account: ${JSON.stringify(verified)}`);
+  }
+  const lookup = await jsonPost(`${api}/accounts:lookup?key=fake-api-key`, { idToken: verified.idToken });
+  if (lookup.users?.[0]?.emailVerified !== true) {
+    throw new Error(`Verified claim not reflected in Auth Emulator lookup: ${JSON.stringify(lookup)}`);
   }
 
   server = createServer(async (req, res) => {
