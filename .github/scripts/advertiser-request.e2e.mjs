@@ -39,7 +39,9 @@ try {
     throw new Error('Fail-closed: email verification guard changed; review the isolated test adapter.');
   }
 
-  let html = source.replace(verificationGuard, testOnlyGuard)
+  const raceMarker = "    // Re-read the signed-in user's own profile before treating it as missing.";
+  if (!source.includes(raceMarker)) throw new Error('Fail-closed: profile recheck fallback missing.');
+  let html = source.replace(raceMarker, "    if(window.__qaForceProfileRace)profile=null;\\n"+raceMarker).replace(verificationGuard, testOnlyGuard)
     .replace('import {getAuth,GoogleAuthProvider,signInWithPopup,signInAnonymously,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";',
       'import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithEmailAndPassword,signInAnonymously,onAuthStateChanged,signOut,connectAuthEmulator} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";')
     .replace('import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,orderBy,limit,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";',
@@ -129,6 +131,8 @@ try {
   await page.locator('#clientPhone').fill('0912345678');
   await page.locator('#serviceType').selectOption({ index: 1 });
   await page.locator('#clientBrief').fill('اختبار آلي معزول لإرسال طلب إعلان تجريبي');
+  // Simulate auth becoming ready before the Firestore profile snapshot callback.
+  await page.evaluate(() => { window.__qaForceProfileRace = true; });
   await page.locator('#requestForm button[type="submit"]').click();
   await page.locator('#requestResult').waitFor({ state: 'visible', timeout: 20000 });
   const resultText = await page.locator('#requestResult').innerText();
