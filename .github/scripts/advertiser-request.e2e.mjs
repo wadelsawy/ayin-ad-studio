@@ -86,6 +86,8 @@ try {
   await page.goto(`http://${HOST}:${PORT}/`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.__ready === 1, null, { timeout: 20000 });
 
+  await page.locator('#loginOpen').click();
+  await page.locator('#loginModal').waitFor({ state: 'visible', timeout: 10000 });
   await page.locator('#gAdv').click();
   await page.locator('#toast').filter({ hasText: 'أهلاً بيك' }).waitFor({ timeout: 15000 });
   await page.evaluate(() => window.AY.showPage('request'));
