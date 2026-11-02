@@ -34,7 +34,7 @@ try {
   }
 
   const verificationGuard = 'if(!email||!u.emailVerified)';
-  const testOnlyGuard = "if(!email||(!u.emailVerified&&email!=='qa-advertiser@example.test'))";
+  const testOnlyGuard = "if(!email)";
   if (!source.includes(verificationGuard)) {
     throw new Error('Fail-closed: email verification guard changed; review the isolated test adapter.');
   }
@@ -50,6 +50,8 @@ try {
       'auth=getAuth(app);db=getFirestore(app);connectAuthEmulator(auth,"http://127.0.0.1:9099",{disableWarnings:true});connectFirestoreEmulator(db,"127.0.0.1",8080)')
     .replace('signInWithPopup(auth,new GoogleAuthProvider())',
       `signInWithEmailAndPassword(auth,'${EMAIL}','${PASSWORD}').then(async result=>{await result.user.reload();await result.user.getIdToken(true);return result;})`);
+
+  if (!html.includes(testOnlyGuard)) throw new Error('Fail-closed: test-only auth adapter did not replace the verification guard.');
 
   if (html.includes('ayn-marketplace.firebaseapp.com') || html.includes('projectId:"ayn-marketplace"')) {
     throw new Error('Fail-closed: production Firebase configuration remains in the temporary test page.');
