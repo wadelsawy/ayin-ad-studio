@@ -89,7 +89,7 @@ try {
   await page.locator('#loginOpen').click();
   await page.locator('#loginModal').waitFor({ state: 'visible', timeout: 10000 });
   await page.locator('#gAdv').click();
-  await page.locator('#toast').filter({ hasText: 'أهلاً بيك' }).waitFor({ timeout: 15000 });
+  await page.locator('body.role-advertiser').waitFor({ state: 'attached', timeout: 20000 });
   await page.evaluate(() => window.AY.showPage('request'));
   await page.locator('#clientName').fill('معلن اختبار');
   await page.locator('#clientPhone').fill('0912345678');
