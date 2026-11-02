@@ -191,6 +191,13 @@ body.role-artist .advOnly{display:none!important}
 .cta{padding:32px}.section{padding:64px 0}}
 @media(max-width:520px){.waFab{padding:13px}.waFab span{display:none}.steps{grid-template-columns:1fr}.ideaBox,.requestPanel form{padding:22px}.sticker{font-size:.8rem}.s1{right:10px}.s2{left:10px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* button feedback states */
+.btn.is-loading{cursor:wait;opacity:.88;transform:none!important;box-shadow:-2px 2px 0 #000!important}
+.btn.is-loading .btnSpinner{width:1em;height:1em;border:2px solid currentColor;border-left-color:transparent;border-radius:50%;display:inline-block;animation:ayinSpin .7s linear infinite}
+.btn.is-success{background:#2563eb!important;color:#fff!important;border-color:#1d4ed8!important;box-shadow:-4px 4px 0 #1e40af!important}
+.btn.is-error{background:#dc2626!important;color:#fff!important;border-color:#991b1b!important;box-shadow:-4px 4px 0 #7f1d1d!important}
+@keyframes ayinSpin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -439,6 +446,15 @@ body.role-artist .advOnly{display:none!important}
 (function(){
   const $=id=>document.getElementById(id);
   function toast(m){const el=$('toast');el.textContent=m;el.style.display='block';clearTimeout(window.__ayinToast);window.__ayinToast=setTimeout(()=>el.style.display='none',3000)}
+  async function withButtonFeedback(btn,task,successLabel='تم بنجاح ✓'){
+    if(!btn||btn.disabled||btn.dataset.feedbackBusy==='1')return false;
+    const oldHTML=btn.innerHTML,oldDisabled=btn.disabled,wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+    btn.dataset.feedbackBusy='1';btn.disabled=true;btn.setAttribute('aria-busy','true');btn.classList.remove('is-success','is-error');btn.classList.add('is-loading');
+    btn.innerHTML='<span class="btnSpinner" aria-hidden="true"></span> جاري تنفيذ الطلب…';
+    try{const result=await task();if(result===false)return false;btn.classList.remove('is-loading');btn.classList.add('is-success');btn.textContent=successLabel;await wait(1800);return true}
+    catch(error){btn.classList.remove('is-loading');btn.classList.add('is-error');btn.textContent='تعذّر التنفيذ';await wait(1300);throw error}
+    finally{btn.innerHTML=oldHTML;btn.disabled=oldDisabled;btn.removeAttribute('aria-busy');btn.classList.remove('is-loading','is-success','is-error');delete btn.dataset.feedbackBusy}
+  }
   function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   $('year').textContent=new Date().getFullYear();
 
@@ -473,7 +489,7 @@ body.role-artist .advOnly{display:none!important}
   });
   $('copyIdea').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(currentIdea);toast('تم نسخ الفكرة.')}catch(e){const a=document.createElement('textarea');a.value=currentIdea;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('تم نسخ الفكرة.')}catch(err){toast('حدد النص وانسخه يدوياً.')}a.remove()}});
 
-  window.AY={$,toast,esc,showPage};
+  window.AY={$,toast,esc,showPage,withButtonFeedback};
 })();
 </script>
 <script type="module">
@@ -487,7 +503,7 @@ const firebaseConfig={apiKey:"AIzaSyBIxmk6lu-xNJ1sOLAbCQipnvv5M_k1eXU",authDomai
 const APPCHECK_KEY=''; /* مفتاح reCAPTCHA v3 لحماية App Check: اتركه فارغاً الآن */
 
 
-const {$,toast,esc,showPage}=window.AY;
+const {$,toast,esc,showPage,withButtonFeedback}=window.AY;
 const ok=!firebaseConfig.apiKey.startsWith('YOUR');
 let auth,db,user=null,myArtist=null,myAds=[],pkgs=[],unsubs=[],artistsList=[],packs=[],artistAds=[],myTopups=[],reqArtist=null,warnCb=null,profile=null,myReqs=[],authReady=false,dbWarned=false,ratingsList=[],aWorksPub=[],myWorks=[],portfolioItems=[],rateDraft={},ratingsStarted=false,ratingsLoaded=false;
 const dbg=(ctx,e)=>console.error('[ayin]',ctx,(e&&e.code)||'',(e&&e.message)||'');
@@ -596,8 +612,8 @@ function renderJoin(){
   if(myArtist){b.innerHTML=myArtist.status==='approved'?'<h3>حسابك كفنان <span class="badge">معتمد</span></h3><div id="dash"></div><a class="btn" href="#artists" data-pg="artists" style="margin-top:14px">شوف بطاقتك</a>':'<h3>طلبك قيد المراجعة <span class="st">انتظار</span></h3><p>بنراجع صفحتك وعدد المتابعين. حتظهر في قسم الفنانين بعد الموافقة، وبتحصل على <b>'+fmt(site.freePoints??5)+' نقاط مجانية</b> تتيح ليك استقبال أول إعلان.</p>'+(site.whatsapp?'<a class="btn primary" target="_blank" rel="noopener" href="'+esc(waLink(site.whatsapp,'السلام عليكم، أنا '+(user.displayName||'')+'، قدّمت كفنان في عاين.'))+'">تواصل مع الإدارة واتساب</a>':'');
     renderDash();const l=b.querySelector('[data-pg]');if(l)l.onclick=e=>{e.preventDefault();showPage('artists')};return}
   b.innerHTML='<h3>أهلاً '+esc((user.displayName||'').split(' ')[0])+'، كمّل بياناتك</h3><p>الحساب: '+esc(user.email||'')+'</p><form id="joinForm"><label class="field"><span>المنصة الأساسية</span><select id="jPlatform"><option>فيسبوك</option><option>انستغرام</option><option>تيك توك</option><option>يوتيوب</option><option>أخرى</option></select></label><label class="field"><span>رابط صفحتك</span><input id="jUrl" type="url" required maxlength="300" placeholder="https://"></label><label class="field"><span>عدد المتابعين</span><input id="jFollowers" type="number" min="0" required inputmode="numeric"></label><label class="field"><span>رقم واتساب (بيظهر للمعلنين في بطاقتك)</span><input id="jPhone" type="tel" required inputmode="tel" pattern="[0-9+ ]{9,20}" title="اكتب رقماً صحيحاً" placeholder="مثلاً 0912345678"></label><label class="field"><span>نبذة عنك وعن شغلك</span><textarea id="jBio" maxlength="400" required></textarea></label><button class="btn primary" type="submit" style="width:100%">أرسل للمراجعة</button></form>';
-  $('joinForm').onsubmit=async e=>{e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;bt.disabled=true;setTimeout(()=>bt.disabled=false,4000);
-    try{await setDoc(doc(db,'users',user.uid),{phone:$('jPhone').value.trim()},{merge:true});await setDoc(doc(db,'contacts',user.uid),{wa:waDigits($('jPhone').value)});await setDoc(doc(db,'artists',user.uid),{uid:user.uid,name:user.displayName||'',photo:user.photoURL||'',platform:$('jPlatform').value,pageUrl:$('jUrl').value.trim(),followers:Number($('jFollowers').value),bio:$('jBio').value.trim(),status:'pending',createdAt:serverTimestamp()});toast('وصل طلبك. حنراجع صفحتك.')}catch(err){dbg('join',err);toast(errMsg(err,'تعذّر إرسال الطلب'))}};
+  $('joinForm').onsubmit=async e=>{e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;
+    try{await withButtonFeedback(bt,async()=>{await setDoc(doc(db,'users',user.uid),{phone:$('jPhone').value.trim()},{merge:true});await setDoc(doc(db,'contacts',user.uid),{wa:waDigits($('jPhone').value)});await setDoc(doc(db,'artists',user.uid),{uid:user.uid,name:user.displayName||'',photo:user.photoURL||'',platform:$('jPlatform').value,pageUrl:$('jUrl').value.trim(),followers:Number($('jFollowers').value),bio:$('jBio').value.trim(),status:'pending',createdAt:serverTimestamp()});toast('وصل طلبك. حنراجع صفحتك.')},'تم إرسال الطلب ✓')}catch(err){dbg('join',err);toast(errMsg(err,'تعذّر إرسال الطلب'))}};
 }
 function renderAds(){
   const l=$('ordersList');
@@ -669,11 +685,11 @@ document.addEventListener('click',async e=>{
     const id=rt.dataset.rate,ad=myAds.find(x=>x.id===id),dr=rateDraft[id];
     if(!ad)return;if(ratingsList.some(r=>r.id===id)){toast('قيّمت هذا الإعلان قبل كده.');return}
     if(!dr||!(dr.stars>=1)){toast('اختار عدد النجوم أولاً.');return}
-    if(rt.disabled)return;rt.disabled=true;
-    try{await setDoc(doc(db,'ratings',id),{adId:id,artistUid:ad.artistUid,raterUid:user.uid,stars:dr.stars,comment:(dr.comment||'').trim(),createdAt:serverTimestamp()});delete rateDraft[id];toast('شكراً! تم إرسال تقييمك.')}
-    catch(err){dbg('rating',err);toast(err&&err.code==='permission-denied'?'ما اتسمح بالتقييم (permission-denied): التقييم متاح بعد اكتمال الإعلان ولمرة واحدة.':errMsg(err,'تعذّر إرسال التقييم'));rt.disabled=false}
+    if(rt.disabled)return;
+    try{await withButtonFeedback(rt,async()=>{await setDoc(doc(db,'ratings',id),{adId:id,artistUid:ad.artistUid,raterUid:user.uid,stars:dr.stars,comment:(dr.comment||'').trim(),createdAt:serverTimestamp()});delete rateDraft[id];toast('شكراً! تم إرسال تقييمك.')},'تم إرسال التقييم ✓')}
+    catch(err){dbg('rating',err);toast(err&&err.code==='permission-denied'?'ما اتسمح بالتقييم (permission-denied): التقييم متاح بعد اكتمال الإعلان ولمرة واحدة.':errMsg(err,'تعذّر إرسال التقييم'))}
     return}
-  if(dw){const wk=myWorks.find(x=>x.id===dw.dataset.delwork);if(!wk||wk.status==='approved'){toast('الأعمال المعتمدة ما بتتحذف من هنا. تواصل مع الإدارة لو عايز تشيلها.');return}if(!confirm('حذف هذا العمل؟'))return;try{await deleteDoc(doc(db,'artistWorks',dw.dataset.delwork));toast('تم الحذف.')}catch(err){dbg('delwork',err);toast(errMsg(err,'تعذّر الحذف'))}}
+  if(dw){const wk=myWorks.find(x=>x.id===dw.dataset.delwork);if(!wk||wk.status==='approved'){toast('الأعمال المعتمدة ما بتتحذف من هنا. تواصل مع الإدارة لو عايز تشيلها.');return}if(!confirm('حذف هذا العمل؟'))return;try{await withButtonFeedback(dw,async()=>{await deleteDoc(doc(db,'artistWorks',dw.dataset.delwork));toast('تم الحذف.')},'تم الحذف ✓')}catch(err){dbg('delwork',err);toast(errMsg(err,'تعذّر الحذف'))}}
 });
 
 /* remove a COMPLETED item from my personal list (hidden on this device; admin records untouched) */
@@ -683,8 +699,7 @@ document.addEventListener('click',e=>{
   const item=kind==='ad'?myAds.find(x=>x.id===id):kind==='top'?myTopups.find(x=>x.id===id):null;
   if(!user||!item||item.status!=='done'){toast('ما ممكن حذف هذا الطلب من القائمة: لسه ما اكتمل.');return}
   if(!confirm('حذف هذا الطلب من قائمتك؟ ما بيتأثر الرصيد ولا حالة الطلب ولا سجلات الإدارة.'))return;
-  b.disabled=true;
-  if(setHidden(getHidden().concat(id))){toast('تم حذف الطلب من قائمتك.');if(kind==='ad')renderAds();else renderDash()}else b.disabled=false;
+  withButtonFeedback(b,async()=>{if(setHidden(getHidden().concat(id))){toast('تم حذف الطلب من قائمتك.');if(kind==='ad')renderAds();else renderDash()}else return false},'تم الحذف من قائمتك ✓').catch(()=>{});
 });
 
 /* points, warning, artist dashboard, top-up */
@@ -718,30 +733,27 @@ function renderDash(){
     $('pfBio').value=myArtist.bio||'';$('pfSpec').value=myArtist.specialties||'';$('pfUrl').value=myArtist.pageUrl||'';
     let waReady=false;
     getDoc(doc(db,'contacts',user.uid)).then(c=>{if(c.exists()&&$('pfWa'))$('pfWa').value=c.data().wa||'';waReady=true}).catch(()=>{});
-    $('profForm').onsubmit=async e=>{e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;bt.disabled=true;
-      try{
+    $('profForm').onsubmit=async e=>{e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;
+      try{await withButtonFeedback(bt,async()=>{
         await updateDoc(doc(db,'artists',user.uid),{bio:$('pfBio').value.trim(),specialties:$('pfSpec').value.trim(),pageUrl:$('pfUrl').value.trim()});
         const w=waDigits($('pfWa').value);if(w||waReady)await setDoc(doc(db,'contacts',user.uid),{wa:w});
         toast('تم حفظ ملفك.');
-      }catch(err){dbg('profile',err);toast(errMsg(err,'تعذّر حفظ الملف'))}finally{bt.disabled=false}};
+      },'تم حفظ الملف ✓')}catch(err){dbg('profile',err);toast(errMsg(err,'تعذّر حفظ الملف'))}};
     const syncWk=()=>{const v=$('wkType').value==='video';$('wkUrlBox').style.display=v?'block':'none';$('wkFileBox').style.display=v?'none':'block'};
     $('wkType').onchange=syncWk;
-    $('workForm2').onsubmit=async e=>{e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;bt.disabled=true;
+    $('workForm2').onsubmit=async e=>{e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;
       const msg=m=>{$('wMsg').textContent=m},t=$('wkType').value,f=$('wkFile').files[0],u=$('wkUrl').value.trim(),title=$('wkTitle').value.trim();
-      try{
-        if(t==='video'){if(!/^https?:\/\//i.test(u)){msg('أدخل رابط فيديو صحيح (يوتيوب أو فيسبوك).');return}}
-        else{
-          if(!f){msg('اختار صورة أولاً.');return}
-          if(!/^image\/(jpeg|png|webp)$/.test(f.type)){msg('نوع الملف غير مدعوم. استخدم JPG أو PNG أو WEBP.');return}
-          if(f.size>10*1024*1024){msg('حجم الصورة كبير جداً (الحد الأقصى 10 ميغابايت).');return}
-        }
+      if(t==='video'&&!/^https?:\/\//i.test(u)){msg('أدخل رابط فيديو صحيح (يوتيوب أو فيسبوك).');return}
+      if(t!=='video'&&!f){msg('اختار صورة أولاً.');return}
+      if(t!=='video'&&!/^image\/(jpeg|png|webp)$/.test(f.type)){msg('نوع الملف غير مدعوم. استخدم JPG أو PNG أو WEBP.');return}
+      if(t!=='video'&&f.size>10*1024*1024){msg('حجم الصورة كبير جداً (الحد الأقصى 10 ميغابايت).');return}
+      try{await withButtonFeedback(bt,async()=>{
         msg('جاري تجهيز الملف…');const img=f&&t!=='video'?await shrinkImg(f):'';
         msg('جاري الحفظ…');
         const id=user.uid+'_'+fnv(title+'|'+(u||img.length))+Date.now().toString(36);
         await setDoc(doc(db,'artistWorks',id),{ownerUid:user.uid,ownerName:myArtist.name||user.displayName||'',type:t,title,desc:$('wkDesc').value.trim(),image:img,url:t==='video'?u:'',status:'pending',createdAt:serverTimestamp()});
         e.target.reset();syncWk();msg('تم الحفظ. العمل بانتظار مراجعة الإدارة قبل ظهورو في المعرض.');
-      }catch(err){dbg('work',err);msg(err&&err.code==='permission-denied'?'ما اتسمح بالحفظ (permission-denied). تأكد إن حسابك فنان معتمد.':errMsg(err,'تعذّر الحفظ'))}
-      finally{bt.disabled=false}};
+      },'تم إرسال العمل ✓')}catch(err){dbg('work',err);msg(err&&err.code==='permission-denied'?'ما اتسمح بالحفظ (permission-denied). تأكد إن حسابك فنان معتمد.':errMsg(err,'تعذّر الحفظ'))}};
   }
   $('dashStats').innerHTML='<div class="pts big'+(can?'':' low')+'">رصيدك: <b>'+fmt(pts)+'</b> نقطة</div><p>كل إعلان بتنفّذو عبر عاين بيخصم '+fmt(COST())+' نقاط من رصيدك بعد اكتمالو.</p>'
     +'<div class="stats big2"><span>✔ '+fmt(myArtist.completedJobs||0)+' إعلان منفّذ</span><span>✨ '+fmt(myArtist.xp||0)+' نقطة خبرة</span><span>⭐ '+(rt.n?fmt1(rt.avg)+' ('+fmt(rt.n)+' تقييم)':'لا توجد تقييمات بعد')+'</span></div>'
@@ -761,17 +773,15 @@ function renderTopup(){
   $('topupNote').textContent=!user?'سجّل الدخول كفنان لتغذية رصيدك.':!ap?'التغذية متاحة للفنانين المعتمدين فقط.':'';
 }
 $('topupGrid').onclick=async e=>{
-  const b=e.target.closest('[data-pack]');if(!b||b.disabled)return;
-  const k=packs.find(x=>x.id===b.dataset.pack);if(!k||!user||!myArtist)return;
-  b.disabled=true;
-  try{
-    const ref=await addDoc(collection(db,'topups'),{uid:user.uid,name:user.displayName||'',packId:k.id,points:Number(k.points),price:Number(k.price),currency:k.currency||'',status:'pending',createdAt:serverTimestamp()});
-    const code='TP-'+ref.id.slice(0,6).toUpperCase();
-    $('topupResult').innerHTML='تم تسجيل طلب التغذية رقم <b>'+code+'</b>.'+payNote()+(site.whatsapp?'<br><a class="btn primary smallbtn" target="_blank" rel="noopener" href="'+esc(waLink(site.whatsapp,'السلام عليكم، أنا فنان في عاين ('+(user.displayName||'')+'). عايز أغذي رصيدي بباقة '+k.points+' نقطة ('+k.price+' '+(k.currency||'')+'). طلب رقم '+code+'.'))+'">أرسل إشعار الدفع على واتساب</a>':'');
-    $('topupResult').style.display='block';
-  }catch(err){toast('تعذّر تسجيل الطلب.')}
-  setTimeout(()=>{b.disabled=false},3000);
-};
+    const b=e.target.closest('[data-pack]');if(!b||b.disabled)return;
+    const k=packs.find(x=>x.id===b.dataset.pack);if(!k||!user||!myArtist)return;
+    try{await withButtonFeedback(b,async()=>{
+      const ref=await addDoc(collection(db,'topups'),{uid:user.uid,name:user.displayName||'',packId:k.id,points:Number(k.points),price:Number(k.price),currency:k.currency||'',status:'pending',createdAt:serverTimestamp()});
+      const code='TP-'+ref.id.slice(0,6).toUpperCase();
+      $('topupResult').innerHTML='تم تسجيل طلب التغذية رقم <b>'+code+'</b>.'+payNote()+(site.whatsapp?'<br><a class="btn primary smallbtn" target="_blank" rel="noopener" href="'+esc(waLink(site.whatsapp,'السلام عليكم، أنا فنان في عاين ('+(user.displayName||'')+'). عايز أغذي رصيدي بباقة '+k.points+' نقطة ('+k.price+' '+(k.currency||'')+'). طلب رقم '+code+'.'))+'">أرسل إشعار الدفع على واتساب</a>':'');
+      $('topupResult').style.display='block';
+    },'تم تسجيل الطلب ✓')}catch(err){dbg('topup',err);toast(errMsg(err,'تعذّر تسجيل الطلب'))}
+  };
 
 /* gallery */
 let works=[],wf='all';
@@ -813,7 +823,7 @@ window.AY.onPage=p=>{if(p==='artists'||p==='track'||p==='artistjoin')startRating
 
 /* request form */
 $('requestForm').onsubmit=async e=>{
-  e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;bt.disabled=true;setTimeout(()=>bt.disabled=false,4000);
+  e.preventDefault();const bt=e.target.querySelector('button[type=submit]');if(bt.disabled)return;
   if(!ok)return needSetup();
   if(!authReady){toast('استنى لحظة، بنتحقق من الجلسة…');return}
   if(!user){try{const guest=await signInAnonymously(auth);user=guest.user;authReady=true}catch(authErr){dbg('guestAuth',authErr);toast('تعذّر بدء جلسة الزائر. تأكد من تفعيل Anonymous في Firebase.');return}}
@@ -835,13 +845,14 @@ $('requestForm').onsubmit=async e=>{
   }
   const p=pkgs.find(x=>x.id===$('pkgSelect').value);
   if(reqArtist){const fa=artistsList.find(x=>x.id===reqArtist.id);if(!fa||(Number(fa.points)||0)<COST()){toast('هذا الفنان غير متاح حالياً.');clearReqArtist();return}if(!$('reqAgree').checked){toast('وافق على التنبيه أولاً.');return}}
-  try{
+  try{await withButtonFeedback(bt,async()=>{
     const nm=$('clientName').value.trim(),sv=$('serviceType').value;
     const adId=user.uid+'_'+fnv([sv,p?p.id:'',reqArtist?reqArtist.id:'',$('clientBrief').value.trim()].join('|'))+Math.floor(Date.now()/600000).toString(36);
-    if(myAds.some(x=>x.id===adId)){toast('الطلب ده اتسجّل قبل شوية (تكرار). تقدر تتابعو من "طلباتي".');return}
+    if(myAds.some(x=>x.id===adId)){toast('الطلب ده اتسجّل قبل شوية (تكرار). تقدر تتابعو من "طلباتي".');return false}
     const ref={id:adId};await setDoc(doc(db,'ads',adId),{ownerUid:user.uid,ownerName:$('clientName').value.trim(),ownerEmail:user.email||'',phone:$('clientPhone').value.trim(),service:$('serviceType').value,packageId:p?p.id:'',packageTitle:p?p.title:'',brief:$('clientBrief').value.trim(),artistUid:reqArtist?reqArtist.id:'',artistName:reqArtist?reqArtist.name:'',status:'new',createdAt:serverTimestamp()});
     const code=adCode(ref.id);const ra=reqArtist;const raWa=ra?await getWa(ra):'';$('requestResult').innerHTML='وصل طلبك رقم <b>'+code+'</b>. تقدر تتابعو من "طلباتي".'+payNote()+(raWa?'<br><a class="btn smallbtn" style="margin-top:10px" target="_blank" rel="noopener" href="'+esc(waLink(raWa,'السلام عليكم، أنا '+nm+'. أرسلت لك طلب إعلان عبر عاين رقم '+code+'.'))+'">تواصل مع الفنان مباشرة</a>':'')+(site.whatsapp?'<br><a class="btn primary smallbtn" target="_blank" rel="noopener" href="'+esc(waLink(site.whatsapp,'السلام عليكم، أنا '+nm+'. طلبي رقم '+code+' ('+sv+'). عايز أعرف بيانات الدفع وأرسل إشعار التحويل.'))+'">تواصل واتساب لإتمام الدفع</a>':'');$('requestResult').style.display='block';e.target.reset();toast('تم إرسال الطلب.');clearReqArtist();
-  }catch(err){dbg('request',err);toast(err&&err.code==='permission-denied'?(reqArtist?'ما اتسمح بالطلب: الفنان ممكن ما بقى متاح (تغيّر رصيدو)، أو حسابك مو مسجّل كمعلن. جرّب فنان تاني أو أرسل من غير تحديد فنان. (permission-denied)':'ما اتسمح بالطلب: تأكد إن حسابك مسجّل كمعلن ونشط. (permission-denied)'):errMsg(err,'تعذّر إرسال الطلب'))}
+
+  },'تم إرسال الطلب ✓')}catch(err){dbg('request',err);toast(err&&err.code==='permission-denied'?(reqArtist?'ما اتسمح بالطلب: الفنان ممكن ما بقى متاح (تغيّر رصيدو)، أو حسابك مو مسجّل كمعلن. جرّب فنان تاني أو أرسل من غير تحديد فنان. (permission-denied)':'ما اتسمح بالطلب: تأكد إن حسابك مسجّل كمعلن ونشط. (permission-denied)'):errMsg(err,'تعذّر إرسال الطلب'))}
 };
 applySite();renderAccount();
 window.__ready=1;

@@ -159,7 +159,14 @@ h2{font:400 1.7rem/1.3 var(--display);margin:0 0 16px}
 .order{color:#1d1a33}.order p{margin:8px 0}.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
 .ctl{padding:8px 10px;border:2px solid #1d1a33;border-radius:10px;background:#fff;color:#1d1a33}.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0 16px}
 .joinBox .field input[type=checkbox]{width:auto}.orders .avatar{width:52px;height:52px}
-.order.wrow{display:flex;gap:14px;align-items:center}.wrow img{width:90px;height:70px;object-fit:cover;border:2px solid #000;border-radius:10px;flex:none}.order,.order small{overflow-wrap:anywhere}.wrow>div{min-width:0}</style></head>
+.order.wrow{display:flex;gap:14px;align-items:center}.wrow img{width:90px;height:70px;object-fit:cover;border:2px solid #000;border-radius:10px;flex:none}.order,.order small{overflow-wrap:anywhere}.wrow>div{min-width:0}
+/* button feedback states */
+.btn.is-loading{cursor:wait;opacity:.88;transform:none!important;box-shadow:-2px 2px 0 #000!important}
+.btn.is-loading .btnSpinner{width:1em;height:1em;border:2px solid currentColor;border-left-color:transparent;border-radius:50%;display:inline-block;animation:ayinSpin .7s linear infinite}
+.btn.is-success{background:#2563eb!important;color:#fff!important;border-color:#1d4ed8!important;box-shadow:-4px 4px 0 #1e40af!important}
+.btn.is-error{background:#dc2626!important;color:#fff!important;border-color:#991b1b!important;box-shadow:-4px 4px 0 #7f1d1d!important}
+@keyframes ayinSpin{to{transform:rotate(360deg)}}
+</style></head>
 <body>
 <noscript><div style="padding:40px 20px;text-align:center;color:#fff;font:16px Tahoma,sans-serif">هذا الموقع يحتاج تفعيل JavaScript ليعمل. فعّله من إعدادات المتصفح وحدّث الصفحة.</div></noscript>
 <noscript><div style="padding:20px;text-align:center;background:#FFC21A;color:#130F2A">اللوحة تحتاج تفعيل JavaScript.</div></noscript>
@@ -215,6 +222,15 @@ const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number(n||0).toLocaleString('ar-EG'),safe=u=>/^https?:\/\//i.test(u)?u:'#';
 function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(window.__t);window.__t=setTimeout(()=>t.style.display='none',3000)}
+async function withButtonFeedback(btn,task,successLabel='تم بنجاح ✓'){
+  if(!btn||btn.disabled||btn.dataset.feedbackBusy==='1')return false;
+  const oldHTML=btn.innerHTML,oldDisabled=btn.disabled,wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  btn.dataset.feedbackBusy='1';btn.disabled=true;btn.setAttribute('aria-busy','true');btn.classList.remove('is-success','is-error');btn.classList.add('is-loading');
+  btn.innerHTML='<span class="btnSpinner" aria-hidden="true"></span> جاري تنفيذ الطلب…';
+  try{const result=await task();if(result===false)return false;btn.classList.remove('is-loading');btn.classList.add('is-success');btn.textContent=successLabel;await wait(1800);return true}
+  catch(error){btn.classList.remove('is-loading');btn.classList.add('is-error');btn.textContent='تعذّر التنفيذ';await wait(1300);throw error}
+  finally{btn.innerHTML=oldHTML;btn.disabled=oldDisabled;btn.removeAttribute('aria-busy');btn.classList.remove('is-loading','is-success','is-error');delete btn.dataset.feedbackBusy}
+}
 const ok=!firebaseConfig.apiKey.startsWith('YOUR');
 let auth,db,started=false,artists=[],ads=[],pkgs=[],users={},works=[],packs=[],topups=[],S={pointsPerAd:5,freePoints:5};
 const waNum=p=>{let d=String(p||'').replace(/\D/g,'');if(d.startsWith('00'))d=d.slice(2);else if(d.startsWith('0'))d='249'+d.slice(1);return d};
@@ -223,7 +239,7 @@ if(!ok)$('gateMsg').textContent='أضف إعدادات Firebase في أعلى ه
 else{const app=initializeApp(firebaseConfig);if(APPCHECK_KEY)import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check.js').then(m=>m.initializeAppCheck(app,{provider:new m.ReCaptchaV3Provider(APPCHECK_KEY),isTokenAutoRefreshEnabled:true})).catch(()=>{});auth=getAuth(app);db=getFirestore(app)}
 const STS={new:'جديد',in_progress:'قيد التنفيذ',done:'مكتمل',cancelled:'ملغي'};
 
-$('gLogin').onclick=async()=>{if(!ok)return;try{await signInWithPopup(auth,new GoogleAuthProvider())}catch(e){toast('تعذّر الدخول.');$('gateMsg').textContent='تعذّر الدخول ('+(e.code||e.message||'خطأ')+'). لو الكود unauthorized-domain يعني النطاق ما اتضاف في Firebase.'}};
+$('gLogin').onclick=async()=>{if(!ok)return;const b=$('gLogin');try{await withButtonFeedback(b,async()=>{await signInWithPopup(auth,new GoogleAuthProvider())},'تم تسجيل الدخول ✓')}catch(e){toast('تعذّر الدخول.');$('gateMsg').textContent='تعذّر الدخول ('+(e.code||e.message||'خطأ')+'). لو الكود unauthorized-domain يعني النطاق ما اتضاف في Firebase.'}};
 $('logout').onclick=()=>signOut(auth);
 let idle;const bump=()=>{clearTimeout(idle);idle=setTimeout(()=>{if(ok&&auth.currentUser){signOut(auth);toast('تم تسجيل الخروج لعدم النشاط.')}},30*60*1000)};['click','keydown','touchstart','scroll'].forEach(ev=>addEventListener(ev,bump,{passive:true}));bump();
 $('tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(!b)return;
@@ -281,53 +297,55 @@ function render(){
 }
 function resetPkg(){$('pkgForm').reset();$('pId').value='';$('pCur').value='جنيه';$('pOrder').value=pkgs.length+1}
 $('pReset').onclick=resetPkg;
-$('packForm').onsubmit=async e=>{e.preventDefault();const d={points:parseInt($('kPts').value,10),price:Number($('kPrice').value),currency:$('kCur').value.trim(),order:Number($('kOrd').value)||0};try{const id=$('kId').value;id?await setDoc(doc(db,'pointPacks',id),d):await addDoc(collection(db,'pointPacks'),d);e.target.reset();$('kId').value='';$('kCur').value='جنيه';toast('تم حفظ الباقة.')}catch(err){toast('فشل الحفظ: '+(err.code||''))}};
-$('kSeed').onclick=async()=>{try{for(const n of [5,10,20,50])await addDoc(collection(db,'pointPacks'),{points:n,price:0,currency:'جنيه',order:n});toast('أُضيفت 4 باقات. حدّد أسعارها بتعديل كل واحدة.')}catch(err){toast('فشل: '+(err.code||''))}};
+$('packForm').onsubmit=async e=>{e.preventDefault();const bt=e.target.querySelector('button[type=submit]');const d={points:parseInt($('kPts').value,10),price:Number($('kPrice').value),currency:$('kCur').value.trim(),order:Number($('kOrd').value)||0};try{await withButtonFeedback(bt,async()=>{const id=$('kId').value;id?await setDoc(doc(db,'pointPacks',id),d):await addDoc(collection(db,'pointPacks'),d);e.target.reset();$('kId').value='';$('kCur').value='جنيه';toast('تم حفظ الباقة.')},'تم حفظ الباقة ✓')}catch(err){toast('فشل الحفظ: '+(err.code||''))}};
+$('kSeed').onclick=async()=>{const b=$('kSeed');try{await withButtonFeedback(b,async()=>{for(const n of [5,10,20,50])await addDoc(collection(db,'pointPacks'),{points:n,price:0,currency:'جنيه',order:n});toast('أُضيفت 4 باقات. حدّد أسعارها بتعديل كل واحدة.')},'تمت إضافة الباقات ✓')}catch(err){toast('فشل إضافة الباقات: '+(err.code||err.message||'خطأ غير معروف'))}};
 function shrink(file){return new Promise((res,rej)=>{const r=new FileReader();r.onerror=rej;r.onload=()=>{const i=new Image();i.onerror=rej;i.onload=()=>{for(const [m,q] of [[1000,.8],[800,.7],[600,.6]]){const k=Math.min(1,m/Math.max(i.width,i.height)),w=Math.round(i.width*k),h=Math.round(i.height*k),c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(i,0,0,w,h);const d=c.toDataURL('image/jpeg',q);if(d.length<700000)return res(d)}rej(new Error('الصورة كبيرة'))};i.src=r.result};r.readAsDataURL(file)})}
 const wSync=()=>{const v=$('wType').value==='video';$('wUrlBox').style.display=v?'block':'none';$('wFileLbl').textContent=v?'صورة غلاف (اختياري)':'الصورة'};
 $('wType').onchange=wSync;
 $('wFile').onchange=async()=>{const f=$('wFile').files[0];if(!f){$('wPrev').style.display='none';return}try{$('wPrev').src=await shrink(f);$('wPrev').style.display='block'}catch(e){toast('تعذّر قراءة الصورة.')}};
 $('workForm').onsubmit=async e=>{e.preventDefault();
-  const t=$('wType').value,f=$('wFile').files[0],u=$('wUrl').value.trim();
+  const bt=$('wSave'),t=$('wType').value,f=$('wFile').files[0],u=$('wUrl').value.trim();
+  if(bt.disabled)return;
   if(t==='video'&&!/^https?:\/\//i.test(u))return toast('أدخل رابط الفيديو.');
   if(t!=='video'&&!f)return toast('اختار صورة.');
-  $('wSave').disabled=true;
-  try{const img=f?await shrink(f):'';await addDoc(collection(db,'portfolio'),{type:t,title:$('wTitle').value.trim(),desc:$('wDesc').value.trim(),image:img,url:t==='video'?u:'',createdAt:serverTimestamp()});e.target.reset();wSync();$('wPrev').style.display='none';toast('تمت الإضافة للمعرض.')}catch(err){toast('فشلت الإضافة: '+(err.code||err.message))}
-  $('wSave').disabled=false};
-$('setForm').onsubmit=async e=>{e.preventDefault();try{await setDoc(doc(db,'settings','site'),{whatsapp:waNum($('sWa').value),bankName:$('sBank').value.trim(),accountNumber:$('sAcc').value.trim(),accountName:$('sName').value.trim(),pointsPerAd:Math.max(1,parseInt($('sCost').value,10)||5),freePoints:Math.max(0,parseInt($('sFree').value,10)||0),xpPerAd:Math.max(0,parseInt($('sXp').value,10)||0)});toast('تم حفظ الإعدادات.')}catch(err){toast('فشل الحفظ: '+(err.code||''))}};
-$('pkgForm').onsubmit=async e=>{e.preventDefault();
+  try{await withButtonFeedback(bt,async()=>{const img=f?await shrink(f):'';await addDoc(collection(db,'portfolio'),{type:t,title:$('wTitle').value.trim(),desc:$('wDesc').value.trim(),image:img,url:t==='video'?u:'',createdAt:serverTimestamp()});e.target.reset();wSync();$('wPrev').style.display='none';toast('تمت الإضافة للمعرض.')},'تمت الإضافة ✓')}catch(err){toast('فشلت الإضافة: '+(err.code||err.message))}};
+$('setForm').onsubmit=async e=>{e.preventDefault();const bt=e.target.querySelector('button[type=submit]');try{await withButtonFeedback(bt,async()=>{await setDoc(doc(db,'settings','site'),{whatsapp:waNum($('sWa').value),bankName:$('sBank').value.trim(),accountNumber:$('sAcc').value.trim(),accountName:$('sName').value.trim(),pointsPerAd:Math.max(1,parseInt($('sCost').value,10)||5),freePoints:Math.max(0,parseInt($('sFree').value,10)||0),xpPerAd:Math.max(0,parseInt($('sXp').value,10)||0)});toast('تم حفظ الإعدادات.')},'تم حفظ الإعدادات ✓')}catch(err){toast('فشل الحفظ: '+(err.code||''))}};
+$('pkgForm').onsubmit=async e=>{e.preventDefault();const bt=e.target.querySelector('button[type=submit]');
   const data={title:$('pTitle').value.trim(),price:Number($('pPrice').value),currency:$('pCur').value.trim(),features:$('pFeat').value.split('\n').map(x=>x.trim()).filter(Boolean),order:Number($('pOrder').value)||0,featured:$('pFtd').checked};
-  try{const id=$('pId').value;id?await setDoc(doc(db,'packages',id),data):await addDoc(collection(db,'packages'),data);resetPkg();toast('تم حفظ الباقة.')}catch(err){toast('فشل الحفظ: '+(err.code||''))}};
+  try{await withButtonFeedback(bt,async()=>{const id=$('pId').value;id?await setDoc(doc(db,'packages',id),data):await addDoc(collection(db,'packages'),data);resetPkg();toast('تم حفظ الباقة.')},'تم حفظ الباقة ✓')}catch(err){toast('فشل الحفظ: '+(err.code||''))}};
 document.addEventListener('click',async e=>{
-  const b=e.target.closest('[data-act]');if(!b)return;const id=b.dataset.id,act=b.dataset.act;
+  const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const id=b.dataset.id,act=b.dataset.act;
+  const labels={approve:'تمت الموافقة ✓',accApproveRole:'تم تغيير الدور ✓',accDeactivate:'تم إيقاف الحساب ✓',accReject:'تم رفض الطلب ✓',uReact:'تم تفعيل الحساب ✓',uDeact:'تم إيقاف الحساب ✓',uRole:'تم تغيير الدور ✓',claimFix:'تم تسجيل الإيميل ✓',adjPts:'تم تعديل الرصيد ✓',topOk:'تمت إضافة النقاط ✓',topNo:'تم رفض الطلب ✓',delPack:'تم الحذف ✓',reject:'تم الحذف ✓',saveAd:'تم حفظ الطلب ✓',delAd:'تم حذف الإعلان ✓',awApprove:'تمت الموافقة ✓',awReject:'تم التحديث ✓',awDelete:'تم الحذف ✓',delWork:'تم الحذف ✓',delPkg:'تم الحذف ✓'};
+  const runAction=async()=>{
   try{
     if(act==='approve'){const ar=artists.find(x=>x.id===id),up={status:'approved',approvedAt:serverTimestamp()};if(ar&&!ar.freeGranted){up.points=(Number(ar.points)||0)+(Number(S.freePoints)>=0?Number(S.freePoints):5);up.freeGranted=true}await updateDoc(doc(db,'artists',id),up);toast('تمت الموافقة، الفنان ظاهر الآن.')}
-    else if(act==='accApproveRole'){const r=accReqs.find(x=>x.id===id);if(!r)return;const to=r.type==='role_artist'?'artist':'advertiser';if(!confirm('تحويل الحساب إلى '+(to==='artist'?'فنان':'معلن')+'؟ طلباتو السابقة بتفضل محفوظة.'))return;await updateDoc(doc(db,'users',r.uid),{role:to});await deleteDoc(doc(db,'accountRequests',id));toast('تم تحويل الدور.')}
-    else if(act==='accDeactivate'){const r=accReqs.find(x=>x.id===id);if(!r)return;if(r.uid===auth.currentUser.uid)return toast('ما بتقدر توقف حسابك الإداري من هنا.');if(!confirm('إيقاف هذا الحساب؟ لمنع الدخول نهائياً لازم كمان تعطّلو من Firebase Authentication.'))return;await updateDoc(doc(db,'users',r.uid),{status:'deactivated',deactivatedAt:serverTimestamp()});await deleteDoc(doc(db,'accountRequests',id));toast('تم الإيقاف. عطّل الحساب كمان من Authentication.')}
-    else if(act==='accReject'){await deleteDoc(doc(db,'accountRequests',id));toast('تم رفض الطلب.')}
+    else if(act==='accApproveRole'){const r=accReqs.find(x=>x.id===id);if(!r)return false;const to=r.type==='role_artist'?'artist':'advertiser';if(!confirm('تحويل الحساب إلى '+(to==='artist'?'فنان':'معلن')+'؟ طلباتو السابقة بتفضل محفوظة.'))return false;await updateDoc(doc(db,'users',r.uid),{role:to});await deleteDoc(doc(db,'accountRequests',id));toast('تم تحويل الدور.')}
+    else if(act==='accDeactivate'){const r=accReqs.find(x=>x.id===id);if(!r)return false;if(r.uid===auth.currentUser.uid){toast('ما بتقدر توقف حسابك الإداري من هنا.');return false}if(!confirm('إيقاف هذا الحساب؟ لمنع الدخول نهائياً لازم كمان تعطّلو من Firebase Authentication.'))return false;await updateDoc(doc(db,'users',r.uid),{status:'deactivated',deactivatedAt:serverTimestamp()});await deleteDoc(doc(db,'accountRequests',id));toast('تم الإيقاف. عطّل الحساب كمان من Authentication.')}
+    else if(act==='accReject'){if(!confirm('رفض طلب الحساب وحذفه من قائمة المراجعة؟'))return false;await deleteDoc(doc(db,'accountRequests',id));toast('تم رفض الطلب.')}
     else if(act==='uReact'){await updateDoc(doc(db,'users',id),{status:'active'});toast('تم التفعيل. تأكد إنو مفعّل كمان في Authentication.')}
-    else if(act==='uDeact'){if(id===auth.currentUser.uid)return toast('ما بتقدر توقف حسابك الإداري من هنا.');if(!confirm('إيقاف هذا الحساب؟'))return;await updateDoc(doc(db,'users',id),{status:'deactivated',deactivatedAt:serverTimestamp()});toast('تم الإيقاف.')}
-    else if(act==='uRole'){const sel=b.closest('.order').querySelector('.roleSel');if(!confirm('تغيير الدور إلى '+sel.value+'؟'))return;await updateDoc(doc(db,'users',id),{role:sel.value});toast('تم تغيير الدور.')}
+    else if(act==='uDeact'){if(id===auth.currentUser.uid){toast('ما بتقدر توقف حسابك الإداري من هنا.');return false}if(!confirm('إيقاف هذا الحساب؟'))return false;await updateDoc(doc(db,'users',id),{status:'deactivated',deactivatedAt:serverTimestamp()});toast('تم الإيقاف.')}
+    else if(act==='uRole'){const sel=b.closest('.order').querySelector('.roleSel');if(!confirm('تغيير الدور إلى '+sel.value+'؟'))return false;await updateDoc(doc(db,'users',id),{role:sel.value});toast('تم تغيير الدور.')}
     else if(act==='claimFix'){const u=users[id];await setDoc(doc(db,'emails',String(u.email||'').toLowerCase()),{uid:id,createdAt:serverTimestamp()});toast('تم تسجيل المطالبة بالإيميل.')}
-    else if(act==='adjPts'){const v=prompt('اكتب عدد النقاط المراد إضافتها (أو رقم سالب للخصم):','0');if(v===null)return;const n=parseInt(v,10);if(!n)return;await runTransaction(db,async tx=>{const r=doc(db,'artists',id),sn=await tx.get(r);tx.update(r,{points:Math.max(0,(Number(sn.data().points)||0)+n)})});toast('تم تعديل الرصيد.')}
-    else if(act==='topOk'){await runTransaction(db,async tx=>{const tr=doc(db,'topups',id),ts=await tx.get(tr),t=ts.data();if(t.status!=='pending')throw new Error('الطلب اتعالج من قبل.');const pr=doc(db,'pointPacks',t.packId),ps=await tx.get(pr);if(!ps.exists())throw new Error('الباقة محذوفة، عدّل الرصيد يدوياً.');const ar=doc(db,'artists',t.uid),as=await tx.get(ar);if(!as.exists())throw new Error('الفنان غير موجود.');tx.update(ar,{points:(Number(as.data().points)||0)+Number(ps.data().points)});tx.update(tr,{status:'done',doneAt:serverTimestamp()})});toast('تمت إضافة النقاط.')}
-    else if(act==='topNo'){await updateDoc(doc(db,'topups',id),{status:'rejected'});toast('تم الرفض.')}
-    else if(act==='delPack'){if(confirm('حذف الباقة؟')){await deleteDoc(doc(db,'pointPacks',id));toast('تم الحذف.')}}
+    else if(act==='adjPts'){const v=prompt('اكتب عدد النقاط المراد إضافتها (أو رقم سالب للخصم):','0');if(v===null)return false;const n=parseInt(v,10);if(!n)return false;await runTransaction(db,async tx=>{const r=doc(db,'artists',id),sn=await tx.get(r);tx.update(r,{points:Math.max(0,(Number(sn.data().points)||0)+n)})});toast('تم تعديل الرصيد.')}
+    else if(act==='topOk'){if(!confirm('تأكيد استلام الدفع وإضافة النقاط لرصيد الفنان؟'))return false;await runTransaction(db,async tx=>{const tr=doc(db,'topups',id),ts=await tx.get(tr),t=ts.data();if(t.status!=='pending')throw new Error('الطلب اتعالج من قبل.');const pr=doc(db,'pointPacks',t.packId),ps=await tx.get(pr);if(!ps.exists())throw new Error('الباقة محذوفة، عدّل الرصيد يدوياً.');const ar=doc(db,'artists',t.uid),as=await tx.get(ar);if(!as.exists())throw new Error('الفنان غير موجود.');tx.update(ar,{points:(Number(as.data().points)||0)+Number(ps.data().points)});tx.update(tr,{status:'done',doneAt:serverTimestamp()})});toast('تمت إضافة النقاط.')}
+    else if(act==='topNo'){if(!confirm('رفض طلب تغذية الرصيد؟'))return false;await updateDoc(doc(db,'topups',id),{status:'rejected'});toast('تم الرفض.')}
+    else if(act==='delPack'){if(!confirm('حذف الباقة؟'))return false;await deleteDoc(doc(db,'pointPacks',id));toast('تم الحذف.')}
     else if(act==='editPack'){const k=packs.find(x=>x.id===id);$('kId').value=id;$('kPts').value=k.points;$('kPrice').value=k.price;$('kCur').value=k.currency||'';$('kOrd').value=k.order||0;$('packForm').scrollIntoView({behavior:'smooth'})}
-    else if(act==='reject'){if(confirm('سيتم حذف الطلب نهائياً. متأكد؟')){await deleteDoc(doc(db,'artists',id));toast('تم الحذف.')}}
+    else if(act==='reject'){if(!confirm('سيتم حذف الطلب نهائياً. متأكد؟'))return false;await deleteDoc(doc(db,'artists',id));toast('تم الحذف.')}
     else if(act==='saveAd'){const r=b.closest('.order'),st=r.querySelector('.adStatus').value,pr=Number(r.querySelector('.adPrice').value)||null;let msg='تم الحفظ.';
       await runTransaction(db,async tx=>{const ar=doc(db,'ads',id),as=await tx.get(ar),ad=as.data();
         const cur=ad.status||'new',TR={new:['new','in_progress','done','cancelled'],in_progress:['in_progress','done','cancelled'],done:['done'],cancelled:['cancelled']};if(!(TR[cur]||[]).includes(st))throw new Error('انتقال الحالة غير مسموح: '+cur+' ← '+st);
         if(st==='done'&&ad.artistUid&&!ad.charged){const pRef=doc(db,'artists',ad.artistUid),ps=await tx.get(pRef),pts=Number(ps.data().points)||0,c=Number(S.pointsPerAd)||5;if(pts<c)throw new Error('رصيد الفنان ('+pts+') لا يكفي لخصم '+c+' نقاط. غذّي رصيدو أولاً.');const xp=Math.max(0,Number(S.xpPerAd??10)||0),pd=ps.data();tx.update(pRef,{points:pts-c,xp:(Number(pd.xp)||0)+xp,completedJobs:(Number(pd.completedJobs)||0)+1});tx.update(ar,{status:st,price:pr,charged:true,pointsCharged:c,xpAwarded:xp});msg='تم الحفظ وخصم '+c+' نقاط ومنح الفنان '+xp+' نقطة خبرة.'}
         else tx.update(ar,{status:st,price:pr})});toast(msg)}
-    else if(act==='delAd'){if(confirm('حذف الإعلان نهائياً؟')){await deleteDoc(doc(db,'ads',id));toast('تم الحذف.')}}
+    else if(act==='delAd'){if(!confirm('حذف الإعلان نهائياً؟'))return false;await deleteDoc(doc(db,'ads',id));toast('تم الحذف.')}
     else if(act==='awApprove'){await updateDoc(doc(db,'artistWorks',id),{status:'approved'});toast('تمت الموافقة وظهر العمل في المعرض.')}
     else if(act==='awReject'){await updateDoc(doc(db,'artistWorks',id),{status:'rejected'});toast('تم الرفض/الإخفاء.')}
-    else if(act==='awDelete'){if(confirm('حذف العمل نهائياً؟')){await deleteDoc(doc(db,'artistWorks',id));toast('تم الحذف.')}}
-    else if(act==='delWork'){if(confirm('حذف هذا العمل من المعرض؟')){await deleteDoc(doc(db,'portfolio',id));toast('تم الحذف.')}}
-    else if(act==='delPkg'){if(confirm('حذف الباقة؟')){await deleteDoc(doc(db,'packages',id));toast('تم الحذف.')}}
+    else if(act==='awDelete'){if(!confirm('حذف العمل نهائياً؟'))return false;await deleteDoc(doc(db,'artistWorks',id));toast('تم الحذف.')}
+    else if(act==='delWork'){if(!confirm('حذف هذا العمل من المعرض؟'))return false;await deleteDoc(doc(db,'portfolio',id));toast('تم الحذف.')}
+    else if(act==='delPkg'){if(!confirm('حذف الباقة؟'))return false;await deleteDoc(doc(db,'packages',id));toast('تم الحذف.')}
     else if(act==='editPkg'){const p=pkgs.find(x=>x.id===id);$('pId').value=id;$('pTitle').value=p.title;$('pPrice').value=p.price;$('pCur').value=p.currency||'';$('pOrder').value=p.order||0;$('pFeat').value=(p.features||[]).join('\n');$('pFtd').checked=!!p.featured;$('pkgForm').scrollIntoView({behavior:'smooth'})}
-  }catch(err){toast('فشلت العملية: '+(err.code||err.message||''))}
+  }catch(err){toast('فشلت العملية: '+(err.code||err.message||''));throw err}};
+  try{if(act==='editPack'||act==='editPkg')await runAction();else await withButtonFeedback(b,runAction,labels[act]||'تم بنجاح ✓')}catch(err){}
 });
 </script>
 <script>document.addEventListener("error",function(e){var t=e.target;if(t&&t.tagName==="IMG"&&t.classList.contains("avatar")&&!t.dataset.f){t.dataset.f=1;t.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23FFC21A'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23130F2A'%3E%D8%B9%3C/text%3E%3C/svg%3E"}},true)</script>
