@@ -58,12 +58,15 @@ try {
   }
 
   await writeFile(join(TEMP, 'index.html'), html);
-  const user = await jsonPost('http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key', {
-    email: EMAIL, password: PASSWORD, returnSecureToken: true
+  const setupResponse = await fetch('http://127.0.0.1:9099/emulator/v1/projects/demo-ayn-marketplace/accounts', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: EMAIL, password: PASSWORD, emailVerified: true, displayName: 'QA Advertiser' })
   });
-  await jsonPost('http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:update?key=fake-api-key', {
-    idToken: user.idToken, emailVerified: true, returnSecureToken: true
-  });
+  const setupData = await setupResponse.json();
+  if (!setupResponse.ok || setupData.emailVerified !== true) {
+    throw new Error(`Auth Emulator verified-user setup failed: ${JSON.stringify(setupData)}`);
+  }
 
   server = createServer(async (req, res) => {
     const path = req.url === '/' ? '/index.html' : req.url;
