@@ -74,7 +74,7 @@ try {
     throw new Error(`Auth Emulator did not expose a verification code: ${JSON.stringify(oobData)}`);
   }
   const verified = await jsonPost(`${api}/accounts:update?key=fake-api-key`, {
-    oobCode: verification.oobCode, returnSecureToken: true
+    oobCode: verification.oobCode, idToken: signup.idToken, returnSecureToken: true
   });
   if (verified.emailVerified !== true) {
     throw new Error(`Auth Emulator did not verify the test account: ${JSON.stringify(verified)}`);
