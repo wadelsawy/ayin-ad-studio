@@ -5,7 +5,7 @@ service cloud.firestore {
     // ---------- Helper functions ----------
     function signedIn() { return request.auth != null; }
     function isAdmin() {
-      return signedIn() && request.auth.token.get('email_verified', false) == true
+      return signedIn()
         && exists(/databases/$(db)/documents/admins/$(request.auth.uid));
     }
     function emailKey() { return request.auth.token.email.lower(); }
